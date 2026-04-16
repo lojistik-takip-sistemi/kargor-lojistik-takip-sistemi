@@ -14,4 +14,8 @@ public class Kullanici {
     public void bilgileriGoster() {
         System.out.println("ID: " + id + " | Ad Soyad: " + adSoyad + " | Email: " + email);
     }
+
+    public String getAdSoyad() {
+        return adSoyad;
+    }
 }
