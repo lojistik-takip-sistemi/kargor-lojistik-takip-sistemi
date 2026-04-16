@@ -1,12 +1,12 @@
 package kargo.model;
 
 public class Kurye extends Kullanici {
-    private String aracPlakasi;
+    private Arac zimmetliArac;
     private String sorumluBolge;
 
-    public Kurye(int id, String adSoyad, String email, String aracPlakasi, String sorumluBolge) {
+    public Kurye(int id, String adSoyad, String email, Arac zimmetliArac, String sorumluBolge) {
         super(id, adSoyad, email);
-        this.aracPlakasi = aracPlakasi;
+        this.zimmetliArac = zimmetliArac;
         this.sorumluBolge = sorumluBolge;
     }
 
@@ -14,7 +14,7 @@ public class Kurye extends Kullanici {
     public void bilgileriGoster() {
         System.out.println("--- KURYE BİLGİSİ ---");
         super.bilgileriGoster();
-        System.out.println("Araç Plakası: " + aracPlakasi + " | Sorumlu Bölge: " + sorumluBolge);
+        System.out.println("Araç Plakası: " + zimmetliArac.getPlaka() + " | Sorumlu Bölge: " + sorumluBolge);
         System.out.println("--------------------------------------------------");
     }
 }
