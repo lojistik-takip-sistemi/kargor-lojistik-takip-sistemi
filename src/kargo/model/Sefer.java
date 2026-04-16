@@ -51,9 +51,14 @@ public class Sefer {
 
         if (cikisZamani != null) {
             System.out.println("Çıkış Zamanı: " + cikisZamani.format(formatlayici));
-            System.out.println("Varış Zamanı: " + varisZamani.format(formatlayici));
-            System.out.println(
-                    "Sefer Süresi: " + java.time.Duration.between(cikisZamani, varisZamani).toMinutes() + " dakika");
+            if (varisZamani != null) {
+                System.out.println("Varış Zamanı: " + varisZamani.format(formatlayici));
+                System.out.println(
+                        "Sefer Süresi: " + java.time.Duration.between(cikisZamani, varisZamani).toMinutes()
+                                + " dakika");
+            } else {
+                System.out.println("Durum: Sefer devam ediyor, henüz varış yapılmadı.");
+            }
         } else {
             System.out.println("Durum: Henüz yola çıkmadı.");
         }

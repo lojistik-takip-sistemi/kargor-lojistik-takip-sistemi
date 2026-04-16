@@ -56,6 +56,9 @@ def update_shipment_status(request, tracking_no):
         yeni_durum = data.get('status')
         guncel_konum = data.get('location')
         
+        if not yeni_durum or not guncel_konum:
+            return Response({"error": "status ve location alanları zorunludur."}, status=status.HTTP_400_BAD_REQUEST)
+        
         # Ana kargo tablosundaki genel durumu güncelliyoruz
         shipment.current_status = yeni_durum
         shipment.save()
