@@ -1,9 +1,32 @@
-from django.urls import path
-from . import views
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import (
+    BranchViewSet, UserViewSet, VehicleViewSet, ShipmentViewSet, 
+    TrackingHistoryViewSet, TripViewSet, NotificationViewSet, 
+    SupportTicketViewSet, ProjectViewSet, TaskViewSet, 
+    InvoiceViewSet, ReviewViewSet, InventoryItemViewSet
+)
+
+# Router (Yönlendirici) oluşturuyoruz
+router = DefaultRouter()
+
+# Tablolarımızı router'a kaydediyoruz
+router.register(r'branches', BranchViewSet)
+router.register(r'users', UserViewSet)
+router.register(r'vehicles', VehicleViewSet)
+router.register(r'shipments', ShipmentViewSet)
+router.register(r'tracking-history', TrackingHistoryViewSet)
+router.register(r'trips', TripViewSet)
+router.register(r'notifications', NotificationViewSet)
+router.register(r'support-tickets', SupportTicketViewSet)
+
+# GÖREV VE YÖNETİM PLATFORMU
+router.register(r'projects', ProjectViewSet)
+router.register(r'tasks', TaskViewSet)
+router.register(r'invoices', InvoiceViewSet)
+router.register(r'reviews', ReviewViewSet)
+router.register(r'inventory-items', InventoryItemViewSet)
 
 urlpatterns = [
-    # Gelen istekleri views.py içindeki ilgili fonksiyonlara bağlıyoruz
-    path('shipments', views.create_shipment),
-    path('shipments/<str:tracking_no>', views.get_shipment),
-    path('shipments/<str:tracking_no>/status', views.update_shipment_status),
+    path('', include(router.urls)),
 ]

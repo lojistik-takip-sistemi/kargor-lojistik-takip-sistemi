@@ -1,36 +1,179 @@
 from django.db import models
+import uuid
 
+# 1. ŞUBE (Branch) MODELİ
+class Branch(models.Model):
+    branch_code = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=100)
+    city = models.CharField(max_length=50)
+    district = models.CharField(max_length=50)
+    address = models.TextField()
+
+    class Meta:
+        db_table = 'Branches'
+
+    def __str__(self):
+        return self.name
+
+# 2. KULLANICI (User) MODELİ
 class User(models.Model):
-    # Sadece Müşteri ve Personel rolleri seçilebilsin diye kısıtlama ekliyoruz
-    ROLE_CHOICES = (('Musteri', 'Müşteri'), ('Personel', 'Personel'))
-    
+    ROLE_CHOICES = (
+        ('Musteri', 'Müşteri'), 
+        ('Kurye', 'Kurye'), 
+        ('Personel', 'Şube Çalışanı')
+    )
     full_name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=15, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, related_name='employees')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'Users' # SQL tarafındaki tablo ismini net belirtiyoruz
+        db_table = 'Users'
 
+    def __str__(self):
+        return f"{self.full_name} ({self.role})"
+
+# 3. ARAÇ (Vehicle) MODELİ
+class Vehicle(models.Model):
+    plate_number = models.CharField(max_length=20, unique=True)
+    vehicle_type = models.CharField(max_length=50)
+    capacity_kg = models.FloatField()
+    is_available = models.BooleanField(default=True)
+    assigned_courier = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_vehicle', limit_choices_to={'role': 'Kurye'})
+
+    class Meta:
+        db_table = 'Vehicles'
+
+    def __str__(self):
+        return self.plate_number
+
+# 4. KARGO (Shipment) MODELİ
 class Shipment(models.Model):
     tracking_number = models.CharField(max_length=50, unique=True)
-    # Gönderici ve Alıcıyı Users tablosuna Foreign Key ile bağlıyoruz
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_shipments')
-    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_shipments')
-    origin_branch = models.CharField(max_length=100)
-    destination_branch = models.CharField(max_length=100)
-    current_status = models.CharField(max_length=50)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_shipments', limit_choices_to={'role': 'Musteri'})
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_shipments', limit_choices_to={'role': 'Musteri'})
+    origin_branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, related_name='origin_shipments')
+    destination_branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, related_name='destination_shipments')
+    courier = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='carried_shipments', limit_choices_to={'role': 'Kurye'})
+    weight_kg = models.FloatField(default=1.0)
+    current_status = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'Shipments'
 
+# 5. KARGO HAREKETLERİ (TrackingHistory)
 class TrackingHistory(models.Model):
-    # Her kargo hareketi, bir kargoya ait olmak zorundadır (Shipments tablosuna bağlantı)
     shipment = models.ForeignKey(Shipment, on_delete=models.CASCADE, related_name='history')
     action_date = models.DateTimeField(auto_now_add=True)
-    location = models.CharField(max_length=150)
+    branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True)
     status_description = models.CharField(max_length=255)
 
     class Meta:
         db_table = 'TrackingHistory'
+
+# 6. SEFER (Trip) MODELİ
+class Trip(models.Model):
+    trip_number = models.CharField(max_length=50, unique=True)
+    origin_branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='departing_trips')
+    destination_branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='arriving_trips')
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
+    shipments = models.ManyToManyField(Shipment, related_name='trips') 
+    departure_time = models.DateTimeField(null=True, blank=True)
+    arrival_time = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'Trips'
+
+# 7. BİLDİRİM (Notification)
+class Notification(models.Model):
+    NOTIFICATION_TYPES = (('SMS', 'SMS'), ('EMAIL', 'E-Posta'), ('PUSH', 'Push'))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=150)
+    message = models.TextField()
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'Notifications'
+
+# 8. DESTEK TALEBİ (SupportTicket)
+class SupportTicket(models.Model):
+    STATUS_CHOICES = (('Acik', 'Açık'), ('Cozuldu', 'Çözüldü'), ('Iptal', 'İptal'))
+    ticket_number = models.CharField(max_length=50, unique=True, blank=True)
+    shipment = models.ForeignKey(Shipment, on_delete=models.CASCADE, related_name='support_tickets')
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='support_tickets', limit_choices_to={'role': 'Musteri'})
+    subject = models.CharField(max_length=150)
+    description = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Acik')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'SupportTickets'
+
+    def save(self, *args, **kwargs):
+        if not self.ticket_number:
+            self.ticket_number = f"TICKET-{str(uuid.uuid4())[:8].upper()}"
+        super().save(*args, **kwargs)
+
+# 9. PROJE (Project)
+class Project(models.Model):
+    STATUS_CHOICES = (('Planlaniyor', 'Planlanıyor'), ('Devam_Ediyor', 'Devam Ediyor'), ('Tamamlandi', 'Tamamlandı'))
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Planlaniyor')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'Projects'
+
+# 10. GÖREV (Task)
+class Task(models.Model):
+    STATUS_CHOICES = (('Yapilacak', 'Yapılacak'), ('Devam_Ediyor', 'Devam Ediyor'), ('Tamamlandi', 'Tamamlandı'))
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    title = models.CharField(max_length=200)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Yapilacak')
+    due_date = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'Tasks'
+
+# 11. FATURA (Invoice)
+class Invoice(models.Model):
+    shipment = models.OneToOneField(Shipment, on_delete=models.CASCADE, related_name='invoice')
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    tax_rate = models.FloatField(default=20.0)
+    is_paid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'Invoices'
+
+# 12. DEĞERLENDİRME (Review)
+class Review(models.Model):
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews_given', limit_choices_to={'role': 'Musteri'})
+    courier = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews_received', limit_choices_to={'role': 'Kurye'})
+    shipment = models.OneToOneField(Shipment, on_delete=models.CASCADE)
+    rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
+    comment = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'Reviews'
+
+# 13. ENVANTER (InventoryItem)
+class InventoryItem(models.Model):
+    name = models.CharField(max_length=100)
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='inventory')
+    quantity = models.IntegerField(default=0)
+    unit = models.CharField(max_length=20, default='Adet')
+    last_updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'InventoryItems'

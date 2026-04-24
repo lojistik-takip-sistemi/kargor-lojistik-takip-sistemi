@@ -1,75 +1,64 @@
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Shipment, TrackingHistory
-from .serializers import ShipmentSerializer
-import uuid
+from rest_framework import viewsets
+from .models import (
+    Branch, User, Vehicle, Shipment, TrackingHistory, Trip, 
+    Notification, SupportTicket, Project, Task, Invoice, Review, InventoryItem
+)
+from .serializers import (
+    BranchSerializer, UserSerializer, VehicleSerializer, ShipmentSerializer, 
+    TrackingHistorySerializer, TripSerializer, NotificationSerializer, 
+    SupportTicketSerializer, ProjectSerializer, TaskSerializer, 
+    InvoiceSerializer, ReviewSerializer, InventoryItemSerializer
+)
 
-@api_view(['POST'])
-def create_shipment(request):
-    """ Yeni bir kargo oluşturur ve otomatik ilk geçmiş kaydını atar. """
-    data = request.data
-    
-    # Sistemin otomatik ve benzersiz bir takip numarası üretmesini sağlıyoruz
-    tracking_no = f"TR-{str(uuid.uuid4())[:8].upper()}"
-    
-    try:
-        # Gelen verilerle veritabanında yeni bir kargo kaydı açıyoruz
-        shipment = Shipment.objects.create(
-            tracking_number=tracking_no,
-            sender_id=data['sender_id'],
-            receiver_id=data['receiver_id'],
-            origin_branch=data['origin_branch'],
-            destination_branch=data['destination_branch'],
-            current_status="Alındı"
-        )
-        
-        # Kargo oluşturulduğu an "Alındı" statüsüyle ilk hareket geçmişini oluşturuyoruz
-        TrackingHistory.objects.create(
-            shipment=shipment,
-            location=data['origin_branch'],
-            status_description="Kargo şubeye teslim alındı."
-        )
-        
-        return Response({"message": "Kargo başarıyla oluşturuldu.", "tracking_number": tracking_no}, status=status.HTTP_201_CREATED)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+class BranchViewSet(viewsets.ModelViewSet):
+    queryset = Branch.objects.all()
+    serializer_class = BranchSerializer
 
-@api_view(['GET'])
-def get_shipment(request, tracking_no):
-    """ Takip numarasına göre kargo detaylarını ve geçmişini getirir. """
-    try:
-        shipment = Shipment.objects.get(tracking_number=tracking_no)
-        # Veriyi Serializer'a verip JSON formatına dönüştürüyoruz
-        serializer = ShipmentSerializer(shipment)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    except Shipment.DoesNotExist:
-        return Response({"error": "Kargo bulunamadı."}, status=status.HTTP_404_NOT_FOUND)
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
-@api_view(['PUT'])
-def update_shipment_status(request, tracking_no):
-    """ Kargonun durumunu günceller ve tarihçeye yeni satır ekler. """
-    try:
-        shipment = Shipment.objects.get(tracking_number=tracking_no)
-        data = request.data
-        
-        yeni_durum = data.get('status')
-        guncel_konum = data.get('location')
-        
-        if not yeni_durum or not guncel_konum:
-            return Response({"error": "status ve location alanları zorunludur."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Ana kargo tablosundaki genel durumu güncelliyoruz
-        shipment.current_status = yeni_durum
-        shipment.save()
-        
-        # Yeni durumu log olarak Kargo Hareketleri tablosuna ekliyoruz
-        TrackingHistory.objects.create(
-            shipment=shipment,
-            location=guncel_konum,
-            status_description=yeni_durum
-        )
-        
-        return Response({"message": "Durum güncellendi ve geçmişe eklendi."}, status=status.HTTP_200_OK)
-    except Shipment.DoesNotExist:
-        return Response({"error": "Kargo bulunamadı."}, status=status.HTTP_404_NOT_FOUND)
+class VehicleViewSet(viewsets.ModelViewSet):
+    queryset = Vehicle.objects.all()
+    serializer_class = VehicleSerializer
+
+class ShipmentViewSet(viewsets.ModelViewSet):
+    queryset = Shipment.objects.all()
+    serializer_class = ShipmentSerializer
+
+class TrackingHistoryViewSet(viewsets.ModelViewSet):
+    queryset = TrackingHistory.objects.all()
+    serializer_class = TrackingHistorySerializer
+
+class TripViewSet(viewsets.ModelViewSet):
+    queryset = Trip.objects.all()
+    serializer_class = TripSerializer
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+
+class SupportTicketViewSet(viewsets.ModelViewSet):
+    queryset = SupportTicket.objects.all()
+    serializer_class = SupportTicketSerializer
+
+# GÖREV VE YÖNETİM PLATFORMU
+class ProjectViewSet(viewsets.ModelViewSet):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+
+class TaskViewSet(viewsets.ModelViewSet):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+
+class InvoiceViewSet(viewsets.ModelViewSet):
+    queryset = Invoice.objects.all()
+    serializer_class = InvoiceSerializer
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+class InventoryItemViewSet(viewsets.ModelViewSet):
+    queryset = InventoryItem.objects.all()
+    serializer_class = InventoryItemSerializer
