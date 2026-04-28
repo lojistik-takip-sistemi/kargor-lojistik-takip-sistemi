@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from .models import (
     Branch, User, Vehicle, Shipment, TrackingHistory, Trip, 
@@ -42,15 +43,18 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
     queryset = SupportTicket.objects.all()
     serializer_class = SupportTicketSerializer
 
-# GÖREV VE YÖNETİM PLATFORMU
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['status', 'branch'] # Duruma ve Şubeye göre filtrele
 
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
-
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['status', 'priority', 'project', 'assigned_to'] # Durum, Öncelik ve Personele göre filtrele
+    
 class InvoiceViewSet(viewsets.ModelViewSet):
     queryset = Invoice.objects.all()
     serializer_class = InvoiceSerializer
