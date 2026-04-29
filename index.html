@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Görev ve Yönetim Platformu | Giriş</title>
+    <!-- Modern bir görünüm için Google Fonts'tan Poppins fontunu çekiyoruz -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Genel Sıfırlama ve Font Ayarı */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Arka Plan: Koyu Lacivert ve Mavi Geçiş (Profesyonel Kurumsal Hava) */
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Buzlu Cam Efektli (Glassmorphism) Giriş Kartı */
+        .login-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 50px 40px;
+            border-radius: 20px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 380px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        /* Sahte Logo Alanı */
+        .system-logo {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            border-radius: 50%;
+            margin: 0 auto 20px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 28px;
+            font-weight: 600;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0, 114, 255, 0.3);
+        }
+
+        .login-container h2 {
+            margin-bottom: 30px;
+            font-weight: 600;
+            font-size: 22px;
+            letter-spacing: 1px;
+        }
+
+        /* İnput (Kutu) Tasarımları */
+        .input-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            outline: none;
+            border-radius: 30px;
+            color: #fff;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Kutuya tıklanınca etrafının parlaması */
+        .input-group input:focus {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #00c6ff;
+            box-shadow: 0 0 15px rgba(0, 198, 255, 0.3);
+        }
+
+        /* Giriş Yap Butonu */
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 30px;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-top: 10px;
+        }
+
+        /* Butonun üzerine gelince büyüme ve parlama efekti */
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 114, 255, 0.4);
+        }
+
+        /* Hata Mesajı Gizli Halde Başlar */
+        .error-message {
+            color: #ff6b6b;
+            font-size: 14px;
+            margin-top: 20px;
+            font-weight: 300;
+            display: none;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <!-- İçi boş kalmasın diye hoş duran bir GY (Görev Yönetim) ikonu -->
+        <div class="system-logo">GY</div>
+        <h2>Sisteme Giriş</h2>
+        
+        <form id="loginForm">
+            <div class="input-group">
+                <input type="text" id="username" placeholder="Kullanıcı Adı" autocomplete="off" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Şifre" required>
+            </div>
+            <button type="submit" class="login-btn">Giriş Yap</button>
+        </form>
+
+        <p id="hataMesaji" class="error-message">Giriş başarısız. Lütfen bilgilerinizi kontrol edin.</p>
+    </div>
+
+    <!-- Yazdığımız JavaScript Motoru -->
+    <script src="app.js"></script>
+</body>
+</html>

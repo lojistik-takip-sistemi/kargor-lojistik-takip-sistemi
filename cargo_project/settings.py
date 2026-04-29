@@ -24,11 +24,13 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',  # JWT Güvenliği için ekledik
     'django_filters',            # Arama ve Filtreleme için ekledik
     'api',
+    'corsheaders',
 ]
 
 # Eksik olan Ara Katmanlar (Middleware) eklendi
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -94,3 +96,5 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
 }
+
+CORS_ALLOW_ALL_ORIGINS = True
