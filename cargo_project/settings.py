@@ -8,10 +8,11 @@ load_dotenv()
 # Proje ana dizini
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Güvenlik Anahtarı ve Debug modunu .env dosyasından çekiyoruz
+# Güvenlik Ayarları (.env dosyasından çekilir)
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG') == 'True'
 
+# Geliştirme aşamasında her türlü bağlantıya izin ver
 ALLOWED_HOSTS = ['*']
 
 # Uygulamalar
@@ -22,16 +23,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Üçüncü taraf paketler
     'rest_framework',
     'rest_framework_simplejwt',
     'django_filters',
-    'api',
     'corsheaders',
+    # Senin uygulaman
+    'api',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # CORS her zaman en üstlerde olmalı
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -60,10 +63,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'cargo_project.wsgi.application'
 
-# Yeni Kimlik Doğrulama Modelimiz (User tablosu değişti)
+# Yeni Kimlik Doğrulama Modeli (User tablosu özelleştirildiği için)
 AUTH_USER_MODEL = 'api.User'
 
-# Senin SQL Server Veritabanı Ayarların
+# --- ÖNEMLİ: POST VERİ KAYBI VE 405 HATASI İÇİN ---
+# Django'nun otomatik olarak adresin sonuna '/' ekleyip yönlendirme yapmasını engeller.
+# Bu sayede POST isteklerindeki veriler yönlendirme sırasında kaybolmaz.
+APPEND_SLASH = False
+
+# SQL Server Veritabanı Ayarları (Trusted_Connection ile yerel bağlanma)
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
@@ -87,7 +95,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-# REST FRAMEWORK: JWT GÜVENLİĞİ VE FİLTRELEME AYARLARI
+# REST FRAMEWORK: JWT GÜVENLİĞİ VE FİLTRELEME
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -100,9 +108,25 @@ REST_FRAMEWORK = {
     ),
 }
 
-# CORS Ayarları (Sadece belirlediğimiz frontend adreslerine izin veriyoruz)
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:5500",  # Live Server kullanıyorsan varsayılan adres
-    "http://localhost:5500",
+# --- CORS AYARLARI ---
+# Frontend ve Backend arasındaki iletişimi sağlar.
+CORS_ALLOW_ALL_ORIGINS = True 
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
 ]

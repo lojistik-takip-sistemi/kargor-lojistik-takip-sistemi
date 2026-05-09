@@ -7,112 +7,87 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class ApiServisi {
-    // Django sunucumuzun adresi
+    // ÖNEMLİ: Eğer 127.0.0.1 çalışmazsa burayı "http://localhost:8000/api/" olarak dene
     private static final String BASE_URL = "http://127.0.0.1:8000/api/";
-    private static String accessToken = ""; // Django'dan alacağımız bilet
+    private static String accessToken = "";
 
-    // Sisteme giriş yapıp Token alma metodu
     public static boolean girisYap(String username, String password) {
         try {
             URL url = new URL(BASE_URL + "token/");
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            
-            // İstek ayarları
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "application/json");
-            con.setRequestProperty("Accept", "application/json");
             con.setDoOutput(true);
+            con.setConnectTimeout(5000); // 5 saniye içinde bağlanamazsa hata ver
 
-            // JSON formatında kullanıcı adı ve şifreyi hazırlıyoruz
             String jsonInputString = String.format("{\"username\":\"%s\", \"password\":\"%s\"}", username, password);
-
-            // Veriyi sunucuya gönder
             try (OutputStream os = con.getOutputStream()) {
-                byte[] input = jsonInputString.getBytes("utf-8");
-                os.write(input, 0, input.length);
+                os.write(jsonInputString.getBytes("utf-8"));
             }
 
-            // Sunucudan gelen cevabın kodunu al (200 = Başarılı)
             int responseCode = con.getResponseCode();
-
             if (responseCode == 200) {
-                // Cevabı oku
-                try (BufferedReader br = new BufferedReader(
-                        new InputStreamReader(con.getInputStream(), "utf-8"))) {
-                    StringBuilder response = new StringBuilder();
-                    String responseLine;
-                    while ((responseLine = br.readLine()) != null) {
-                        response.append(responseLine.trim());
-                    }
-                    
-                    // JSON içinden token'ı ayıkla
-                    String responseBody = response.toString();
-                    accessToken = responseBody.split("\"access\":\"")[1].split("\"")[0];
-                    System.out.println("✅ API Bağlantısı Başarılı! Sistem Token'ı aldı.");
+                BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "utf-8"));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) response.append(line.trim());
+                
+                // Token ayıklama
+                String respStr = response.toString();
+                if (respStr.contains("\"access\":\"")) {
+                    accessToken = respStr.split("\"access\":\"")[1].split("\"")[0];
                     return true;
                 }
             } else {
-                System.out.println("❌ API Girişi Başarısız. Hata Kodu: " + responseCode);
-                return false;
+                System.out.println("❌ Giriş Başarısız! Sunucu Yanıtı: " + responseCode);
             }
-
         } catch (Exception e) {
-            System.out.println("❌ API Sunucusuna Bağlanılamadı. Django'nun (runserver) açık olduğundan emin olun.");
+            System.out.println("⚠️ Bağlantı Hatası: Sunucuya ulaşılamıyor. Şunları kontrol et:");
+            System.out.println("1. Django sunucusu (runserver) çalışıyor mu?");
+            System.out.println("2. Terminaldeki adres http://127.0.0.1:8000 mi?");
             System.out.println("Hata Detayı: " + e.getMessage());
-            return false;
         }
+        return false;
     }
-    
-    // Diğer sınıfların Token'ı kullanabilmesi için
-    public static String getAccessToken() {
-        return accessToken;
-    }
-    // --- YENİ EKLENEN METOT: VERİTABANINA PROJE KAYDETME ---
-    public static boolean projeOlustur(String projeAdi, String aciklama) {
-        // Eğer token yoksa işlem yapamayız
-        if (accessToken == null || accessToken.isEmpty()) {
-            System.out.println("⚠️ Token bulunamadı. Önce giriş yapılmalı!");
-            return false;
-        }
 
+    public static boolean kargoKaydet(String takipNo, double agirlik, int gondericiId, int aliciId, int subeId) {
+        String json = String.format(
+            "{\"tracking_number\":\"%s\", \"weight_kg\":%s, \"sender\":%d, \"receiver\":%d, \"origin_branch\":%d, \"current_status\":\"Şubede Bekliyor\"}",
+            takipNo, String.valueOf(agirlik), gondericiId, aliciId, subeId
+        );
+        return apiIstegiAt("POST", "shipments/", json, false);
+    }
+
+    public static boolean kargoDurumGuncelle(int kargoId, String yeniDurum) {
+        String json = "{\"current_status\":\"" + yeniDurum + "\"}";
+        // Güncelleme işlemi olduğu için isUpdate parametresini true gönderiyoruz
+        return apiIstegiAt("POST", "shipments/" + kargoId + "/", json, true);
+    }
+
+    private static boolean apiIstegiAt(String method, String endpoint, String jsonBody, boolean isUpdate) {
+        if (accessToken.isEmpty()) return false;
         try {
-            URL url = new URL(BASE_URL + "projects/");
+            URL url = new URL(BASE_URL + endpoint);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod(method);
             
-            // İstek ayarları (POST)
-            con.setRequestMethod("POST");
+            // Eğer bir güncelleme yapıyorsak Django'ya bunun bir PATCH olduğunu bildiriyoruz
+            if (isUpdate) {
+                con.setRequestProperty("X-HTTP-Method-Override", "PATCH");
+            }
+            
             con.setRequestProperty("Content-Type", "application/json");
-            con.setRequestProperty("Accept", "application/json");
-            
-            // DİKKAT: Güvenlik duvarını geçmek için az önce aldığımız bileti (Token) gösteriyoruz!
-            con.setRequestProperty("Authorization", "Bearer " + accessToken); 
+            con.setRequestProperty("Authorization", "Bearer " + accessToken);
             con.setDoOutput(true);
 
-            // Django'ya göndereceğimiz veriyi JSON formatında hazırlıyoruz
-            String jsonInputString = String.format(
-                "{\"name\":\"%s\", \"description\":\"%s\", \"status\":\"Planlaniyor\"}", 
-                projeAdi, aciklama
-            );
-
-            // Veriyi sunucuya gönderiyoruz
             try (OutputStream os = con.getOutputStream()) {
-                byte[] input = jsonInputString.getBytes("utf-8");
-                os.write(input, 0, input.length);
+                os.write(jsonBody.getBytes("utf-8"));
             }
-
-            // Sunucudan gelen cevabın kodunu alıyoruz (201 = Created / Başarıyla Oluşturuldu)
-            int responseCode = con.getResponseCode();
-
-            if (responseCode == 201) {
-                System.out.println("💾 [VERİTABANI] Yeni Proje Başarıyla Kaydedildi: " + projeAdi);
-                return true;
-            } else {
-                System.out.println("❌ Proje Kaydedilemedi. Hata Kodu: " + responseCode);
-                return false;
-            }
-
+            
+            int code = con.getResponseCode();
+            return code == 201 || code == 200;
         } catch (Exception e) {
-            System.out.println("❌ Bağlantı Hatası: " + e.getMessage());
+            System.out.println("İstek Hatası: " + e.getMessage());
             return false;
         }
     }

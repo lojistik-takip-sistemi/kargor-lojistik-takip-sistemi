@@ -7,10 +7,10 @@ from .views import (
     InvoiceViewSet, ReviewViewSet, InventoryItemViewSet
 )
 
-# Router (Yönlendirici) oluşturuyoruz
+# Router oluşturuyoruz
 router = DefaultRouter()
 
-# Tablolarımızı router'a kaydediyoruz
+# Tabloları router'a kaydediyoruz
 router.register(r'branches', BranchViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'vehicles', VehicleViewSet)
@@ -19,8 +19,6 @@ router.register(r'tracking-history', TrackingHistoryViewSet)
 router.register(r'trips', TripViewSet)
 router.register(r'notifications', NotificationViewSet)
 router.register(r'support-tickets', SupportTicketViewSet)
-
-# GÖREV VE YÖNETİM PLATFORMU
 router.register(r'projects', ProjectViewSet)
 router.register(r'tasks', TaskViewSet)
 router.register(r'invoices', InvoiceViewSet)

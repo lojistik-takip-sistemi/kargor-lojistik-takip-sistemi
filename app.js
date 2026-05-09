@@ -1,37 +1,34 @@
 document.getElementById('loginForm').addEventListener('submit', function(e) {
-    e.preventDefault(); // Sayfanın yenilenmesini engeller
+    e.preventDefault();
+    
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    const hataBox = document.getElementById('hataMesaji');
 
-    // Formdaki bilgileri al
-    const kadi = document.getElementById('username').value;
-    const sifre = document.getElementById('password').value;
+    // Hata mesajını gizle
+    hataBox.style.display = 'none';
 
-    // Django API'sine giriş isteği at
+    // Django Token Endpoint'ine istek atıyoruz
     fetch('http://127.0.0.1:8000/api/token/', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            username: kadi,
-            password: sifre
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user, password: pass })
     })
     .then(response => {
-        if (!response.ok) {
-            throw new Error('Giriş Başarısız');
-        }
-        return response.json();
+        if (response.ok) return response.json();
+        throw new Error('Giriş başarısız');
     })
     .then(data => {
-        // Gelen Token'ı tarayıcının hafızasına (localStorage) kaydet
+        // Token'ları tarayıcıya kaydet
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
         
-        alert("Giriş Başarılı! Sisteme yönlendiriliyorsunuz...");
-        window.location.href = "dashboard.html"; 
+        // Dashboard'a yönlendir
+        window.location.href = "dashboard.html";
     })
     .catch(error => {
+        // Hata durumunda kırmızı kutuyu göster
+        hataBox.style.display = 'block';
         console.error('Hata:', error);
-        document.getElementById('hataMesaji').style.display = 'block';
     });
 });
