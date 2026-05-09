@@ -1,3 +1,4 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 import uuid
 
@@ -16,25 +17,25 @@ class Branch(models.Model):
         return self.name
 
 # 2. KULLANICI (User) MODELİ
-class User(models.Model):
+class User(AbstractUser):
     ROLE_CHOICES = (
         ('Musteri', 'Müşteri'), 
         ('Kurye', 'Kurye'), 
         ('Personel', 'Şube Çalışanı')
     )
-    full_name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
+    # Django'nun AbstractUser sınıfında username, password, email zaten olduğu için 
+    # projenin diğer yerleri (admin vb.) bozulmasın diye full_name eklendi.
+    full_name = models.CharField(max_length=100) 
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='Musteri')
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, related_name='employees')
-    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'Users'
 
     def __str__(self):
-        return f"{self.full_name} ({self.role})"
+        return f"{self.username} ({self.role})"
 
 # 3. ARAÇ (Vehicle) MODELİ
 class Vehicle(models.Model):

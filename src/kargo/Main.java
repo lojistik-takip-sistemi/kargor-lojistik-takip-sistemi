@@ -1,5 +1,6 @@
 package kargo;
 
+import kargo.api.ApiServisi; // API Servisimizi dahil ediyoruz
 import kargo.model.Arac;
 import kargo.model.Kargo;
 import kargo.model.Kurye;
@@ -11,6 +12,20 @@ import kargo.model.SubeCalisani;
 public class Main {
     public static void main(String[] args) throws InterruptedException {
         System.out.println("--- Kargo Lojistik Takip Sistemi Başlatılıyor ---\n");
+
+        // --- API BAĞLANTI VE VERİTABANI KAYIT KISMI ---
+        System.out.println("🌐 Backend (Django) sunucusuna bağlanılıyor...");
+        boolean baglantiDurumu = ApiServisi.girisYap("admin", "1234");
+        
+        if (!baglantiDurumu) {
+            System.out.println("⚠️ Çevrimdışı mod: Veriler sadece bu ekranda (RAM'de) kalacak.\n");
+        } else {
+            System.out.println("🚀 Çevrimiçi mod: Gerçek zamanlı veritabanı entegrasyonu aktif.\n");
+            
+            // --- VERİTABANINA CANLI KAYIT ATIYORUZ ---
+            ApiServisi.projeOlustur("Trabzon Şube Altyapı Yenilemesi", "Tüm bilgisayarlar ve ağ sistemleri güncellenecek.");
+        }
+        // ----------------------------------------
 
         // 1. Şubelerin Oluşturulması
         Sube cikisSubesi = new Sube("SUB-061", "Trabzon Merkez Şubesi", "Trabzon", "Ortahisar", "Meydan Mevkii");

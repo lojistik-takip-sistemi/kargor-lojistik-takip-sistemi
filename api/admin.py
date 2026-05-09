@@ -11,9 +11,10 @@ class BranchAdmin(admin.ModelAdmin):
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'email', 'role', 'branch', 'created_at')
+    # created_at yerine date_joined kullanıyoruz, username'i de ekliyoruz
+    list_display = ('username', 'full_name', 'email', 'role', 'branch', 'date_joined') 
     list_filter = ('role', 'branch')
-    search_fields = ('full_name', 'email')
+    search_fields = ('username', 'full_name', 'email')
 
 @admin.register(Vehicle)
 class VehicleAdmin(admin.ModelAdmin):

@@ -1,14 +1,16 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# .env dosyasını sisteme yükle
+load_dotenv()
 
 # Proje ana dizini
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Güvenlik Anahtarı
-SECRET_KEY = 'django-insecure-kargo-projesi-anahtari'
-
-# Geliştirme modu açık
-DEBUG = True
+# Güvenlik Anahtarı ve Debug modunu .env dosyasından çekiyoruz
+SECRET_KEY = os.getenv('SECRET_KEY')
+DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
@@ -21,13 +23,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework_simplejwt',  # JWT Güvenliği için ekledik
-    'django_filters',            # Arama ve Filtreleme için ekledik
+    'rest_framework_simplejwt',
+    'django_filters',
     'api',
     'corsheaders',
 ]
 
-# Eksik olan Ara Katmanlar (Middleware) eklendi
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -41,7 +42,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'cargo_project.urls'
 
-# Eksik olan Template ayarları eklendi
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -59,6 +59,9 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'cargo_project.wsgi.application'
+
+# Yeni Kimlik Doğrulama Modelimiz (User tablosu değişti)
+AUTH_USER_MODEL = 'api.User'
 
 # Senin SQL Server Veritabanı Ayarların
 DATABASES = {
@@ -97,4 +100,9 @@ REST_FRAMEWORK = {
     ),
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS Ayarları (Sadece belirlediğimiz frontend adreslerine izin veriyoruz)
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:5500",  # Live Server kullanıyorsan varsayılan adres
+    "http://localhost:5500",
+]
