@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth.hashers import make_password
 from .models import (
     Branch, User, Vehicle, Shipment, TrackingHistory, Trip, 
     Notification, SupportTicket, Project, Task, Invoice, Review, InventoryItem
@@ -13,6 +14,21 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
+        # Şifrenin API yanıtlarında görünmesini engeller
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
+
+    def create(self, validated_data):
+        # Yeni kullanıcı oluşturulurken şifreyi hashle
+        validated_data['password'] = make_password(validated_data.get('password'))
+        return super(UserSerializer, self).create(validated_data)
+
+    def update(self, instance, validated_data):
+        # Kullanıcı güncellenirken şifre de gönderilmişse hashle
+        if 'password' in validated_data:
+            validated_data['password'] = make_password(validated_data.get('password'))
+        return super(UserSerializer, self).update(instance, validated_data)
 
 class VehicleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -44,7 +60,6 @@ class SupportTicketSerializer(serializers.ModelSerializer):
         model = SupportTicket
         fields = '__all__'
 
-# GÖREV VE YÖNETİM PLATFORMU
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project

@@ -1,6 +1,11 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 import uuid
+import qrcode
+from io import BytesIO
+from django.core.files import File
+import random
+import string
 
 # 1. ŞUBE (Branch) MODELİ
 class Branch(models.Model):
@@ -51,20 +56,36 @@ class Vehicle(models.Model):
     def __str__(self):
         return self.plate_number
 
-# 4. KARGO (Shipment) MODELİ
 class Shipment(models.Model):
-    tracking_number = models.CharField(max_length=50, unique=True)
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_shipments', limit_choices_to={'role': 'Musteri'})
-    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_shipments', limit_choices_to={'role': 'Musteri'})
-    origin_branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, related_name='origin_shipments')
-    destination_branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, related_name='destination_shipments')
-    courier = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='carried_shipments', limit_choices_to={'role': 'Kurye'})
-    weight_kg = models.FloatField(default=1.0)
-    current_status = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
+    # Senin mevcut alanların muhtemelen şunlardı, kendi alanlarınla birleştirebilirsin
+    tracking_number = models.CharField(max_length=50, unique=True, blank=True)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_shipments', null=True)
+    receiver_name = models.CharField(max_length=255)
+    departure_branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, related_name='departures')
+    status = models.CharField(max_length=50, default='Hazırlanıyor')
+    
+    # Yeni eklenen QR Code alanı
+    qr_code = models.ImageField(upload_to='qr_codes/', blank=True, null=True)
 
-    class Meta:
-        db_table = 'Shipments'
+    def save(self, *args, **kwargs):
+        # 1. Otomatik Takip Numarası Üretme (Eğer boşsa)
+        if not self.tracking_number:
+            random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            self.tracking_number = f"KRG-2026-{random_str}"
+        
+        # 2. QR Kod Üretimi (Sadece ilk kaydedildiğinde)
+        if not self.qr_code:
+            qr = qrcode.QRCode(version=1, box_size=10, border=5)
+            # QR kod okutulunca API'deki takip adresine gider
+            qr.add_data(f"http://127.0.0.1:8000/api/shipments/?tracking_number={self.tracking_number}")
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="black", back_color="white")
+            
+            buffer = BytesIO()
+            img.save(buffer, format="PNG")
+            self.qr_code.save(f'qr_{self.tracking_number}.png', File(buffer), save=False)
+            
+        super().save(*args, **kwargs)
 
 # 5. KARGO HAREKETLERİ (TrackingHistory)
 class TrackingHistory(models.Model):

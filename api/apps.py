@@ -1,9 +1,8 @@
 from django.apps import AppConfig
 
 class ApiConfig(AppConfig):
-    default_auto_field = 'django.db.models.AutoField'
+    default_auto_field = 'django.db.models.BigAutoField'
     name = 'api'
 
-    # Sistem (motor) ilk çalıştığında burası tetiklenir
     def ready(self):
-        from . import signals
+        import api.signals  # Sinyalleri projeye dahil ettik

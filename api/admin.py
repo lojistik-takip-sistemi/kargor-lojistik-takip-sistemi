@@ -11,7 +11,6 @@ class BranchAdmin(admin.ModelAdmin):
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    # created_at yerine date_joined kullanıyoruz, username'i de ekliyoruz
     list_display = ('username', 'full_name', 'email', 'role', 'branch', 'date_joined') 
     list_filter = ('role', 'branch')
     search_fields = ('username', 'full_name', 'email')
@@ -22,11 +21,12 @@ class VehicleAdmin(admin.ModelAdmin):
     list_filter = ('is_available', 'vehicle_type')
     search_fields = ('plate_number',)
 
+# --- DÜZELTİLEN KISIM: Shipment modelindeki güncel alanlara göre (receiver_name, status vb.) ---
 @admin.register(Shipment)
 class ShipmentAdmin(admin.ModelAdmin):
-    list_display = ('tracking_number', 'sender', 'receiver', 'current_status', 'created_at')
-    list_filter = ('current_status',)
-    search_fields = ('tracking_number', 'sender__full_name', 'receiver__full_name')
+    list_display = ('tracking_number', 'sender', 'receiver_name', 'status', 'departure_branch')
+    list_filter = ('status', 'departure_branch')
+    search_fields = ('tracking_number', 'receiver_name')
 
 @admin.register(TrackingHistory)
 class TrackingHistoryAdmin(admin.ModelAdmin):

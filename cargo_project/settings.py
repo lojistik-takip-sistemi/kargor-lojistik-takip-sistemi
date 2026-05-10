@@ -130,3 +130,35 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
+# --- MAİL VE SAYFALAMA AYARLARI ---
+# E-postaları VS Code terminalinde görüntülemek için
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Global sayfalama (Kargo verileri çoğalınca sistemin çökmemesi için)
+REST_FRAMEWORK['DEFAULT_PAGINATION_CLASS'] = 'rest_framework.pagination.PageNumberPagination'
+REST_FRAMEWORK['PAGE_SIZE'] = 20
+# --- EKLENEN PROFESYONEL BACKEND AYARLARI ---
+
+# 1. DRF ve JWT Ayarları
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+# 2. Şifre Sıfırlama Mailleri VS Code Terminaline Düşsün
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# 3. QR Kodlar için Medya Ayarları
+import os
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

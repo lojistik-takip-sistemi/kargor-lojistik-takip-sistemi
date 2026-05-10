@@ -5,9 +5,9 @@ public class SubeCalisani extends Kullanici {
     private int vardiyaBaslangicSaati;
     private int vardiyaBitisSaati;
 
-    public SubeCalisani(int id, String adSoyad, String email,
-            Sube calistigiSube, int vardiyaBaslangicSaati, int vardiyaBitisSaati) {
-        super(id, adSoyad, email);
+    public SubeCalisani(int id, String username, String adSoyad, String email, String phone, Sube calistigiSube, int vardiyaBaslangicSaati, int vardiyaBitisSaati) {
+        // Ata sınıfa (Kullanici) bilgileri ve "Personel" rolünü gönderiyoruz
+        super(id, username, adSoyad, email, "Personel", phone);
         this.calistigiSube = calistigiSube;
         this.vardiyaBaslangicSaati = vardiyaBaslangicSaati;
         this.vardiyaBitisSaati = vardiyaBitisSaati;
@@ -23,11 +23,10 @@ public class SubeCalisani extends Kullanici {
 
     @Override
     public void bilgileriGoster() {
-        super.bilgileriGoster(); // Önce temel kullanıcı bilgilerini yazdır
+        super.bilgileriGoster(); 
         System.out.println("Çalıştığı Şube: " + calistigiSube.getSubeAdi());
         System.out.println("Vardiya: " + vardiyaBaslangicSaati + ":00 - " + vardiyaBitisSaati + ":00");
         System.out.println("Toplam Çalışma Saati: " + calistigiSaatleriHesapla() + " saat");
         System.out.println("--------------------------------------------------");
     }
-
 }

@@ -4,13 +4,11 @@ from .views import (
     BranchViewSet, UserViewSet, VehicleViewSet, ShipmentViewSet, 
     TrackingHistoryViewSet, TripViewSet, NotificationViewSet, 
     SupportTicketViewSet, ProjectViewSet, TaskViewSet, 
-    InvoiceViewSet, ReviewViewSet, InventoryItemViewSet
+    InvoiceViewSet, ReviewViewSet, InventoryItemViewSet,
+    request_password_reset, reset_password_confirm, DashboardSummaryView
 )
 
-# Router oluşturuyoruz
 router = DefaultRouter()
-
-# Tabloları router'a kaydediyoruz
 router.register(r'branches', BranchViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'vehicles', VehicleViewSet)
@@ -27,4 +25,11 @@ router.register(r'inventory-items', InventoryItemViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    
+    # Şifre Sıfırlama
+    path('password-reset/', request_password_reset, name='password_reset'),
+    path('reset-password-confirm/<uidb64>/<token>/', reset_password_confirm, name='password_reset_confirm'),
+    
+    # Dashboard İstatistikleri
+    path('dashboard/summary/', DashboardSummaryView.as_view(), name='dashboard_summary'),
 ]

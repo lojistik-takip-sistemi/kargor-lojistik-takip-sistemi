@@ -4,8 +4,9 @@ public class Kurye extends Kullanici {
     private Arac zimmetliArac;
     private String sorumluBolge;
 
-    public Kurye(int id, String adSoyad, String email, Arac zimmetliArac, String sorumluBolge) {
-        super(id, adSoyad, email);
+    public Kurye(int id, String username, String adSoyad, String email, String phone, Arac zimmetliArac, String sorumluBolge) {
+        // Ata sınıfa (Kullanici) bilgileri ve "Kurye" rolünü gönderiyoruz
+        super(id, username, adSoyad, email, "Kurye", phone);
         this.zimmetliArac = zimmetliArac;
         this.sorumluBolge = sorumluBolge;
     }

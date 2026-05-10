@@ -1,13 +1,26 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Task, SupportTicket, Notification
+from .models import Task, SupportTicket, Notification, Shipment, TrackingHistory
 
-# 1. GÖREV (Task) TETİKLEYİCİSİ
+# 1. KARGO (Shipment) TETİKLEYİCİSİ
+# Kargo oluşturulduğunda otomatik olarak "TrackingHistory" (Takip Geçmişi) oluşturur.
+@receiver(post_save, sender=Shipment)
+def manage_shipment_tracking(sender, instance, created, **kwargs):
+    if created:
+        # Yeni bir kargo oluşturulduğunda ilk hareket kaydını otomatik ekle
+        TrackingHistory.objects.create(
+            shipment=instance,
+            status=instance.status,
+            location=instance.departure_branch.name if instance.departure_branch else "Merkez Şube",
+            description="Kargo kaydı oluşturuldu, gönderim süreci başlatıldı."
+        )
+
+# 2. GÖREV (Task) TETİKLEYİCİSİ
+# Görev durumu "Tamamlandi" olarak güncellendiğinde atanan kişiye bildirim gönderir.
 @receiver(post_save, sender=Task)
 def task_status_changed(sender, instance, created, **kwargs):
-    # Eğer görev yeni oluşturulmadıysa (yani güncelleniyorsa) ve durumu 'Tamamlandi' olduysa
+    # Eğer görev güncelleniyorsa ve durumu 'Tamamlandi' olduysa
     if not created and instance.status == 'Tamamlandi':
-        # Görev kime atandıysa ona bir tebrik/bilgi bildirimi atalım
         if instance.assigned_to:
             Notification.objects.create(
                 user=instance.assigned_to,
@@ -16,10 +29,10 @@ def task_status_changed(sender, instance, created, **kwargs):
                 notification_type='PUSH'
             )
 
-# 2. DESTEK TALEBİ (SupportTicket) TETİKLEYİCİSİ
+# 3. DESTEK TALEBİ (SupportTicket) TETİKLEYİCİSİ
+# Yeni bir destek talebi açıldığında müşteriye onay bildirimi gönderir.
 @receiver(post_save, sender=SupportTicket)
 def new_support_ticket_created(sender, instance, created, **kwargs):
-    # Eğer bu kayıt veritabanına İLK KEZ ekleniyorsa (created = True)
     if created:
         Notification.objects.create(
             user=instance.customer,
