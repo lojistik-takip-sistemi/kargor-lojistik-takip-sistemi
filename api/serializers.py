@@ -1,3 +1,4 @@
+from .models import ActionLog # En üste eklemeyi unutma (veya mevcut model importuna dahil et)
 from rest_framework import serializers
 from .models import User, Project, Task, Comment, Notification
 
@@ -26,6 +27,7 @@ class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = '__all__'
+        read_only_fields = ['task_code', 'created_at'] # YENİ EKLENEN SATIR: Bu alanları benden bekleme, otomatik dolacak diyoruz.
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,3 +38,12 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = '__all__'
+       
+
+class ActionLogSerializer(serializers.ModelSerializer):
+    # Logu atan kişinin adını doğrudan göstermek için
+    user_name = serializers.CharField(source='user.full_name', read_only=True)
+
+    class Meta:
+        model = ActionLog
+        fields = ['id', 'user_name', 'action_type', 'description', 'created_at']

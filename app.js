@@ -3,6 +3,7 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     
     const user = document.getElementById('username').value;
     const pass = document.getElementById('password').value;
+    const rememberMe = document.getElementById('rememberMe').checked; // Checkbox durumu
     const hataBox = document.getElementById('hataMesaji');
 
     // Hata mesajını gizle
@@ -19,11 +20,31 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
         throw new Error('Giriş başarısız');
     })
     .then(data => {
-        // Token'ları tarayıcıya kaydet
-        localStorage.setItem('access_token', data.access);
-        localStorage.setItem('refresh_token', data.refresh);
+        // Beni Hatırla seçildiyse localStorage (kalıcı), seçilmediyse sessionStorage (tarayıcı kapanınca silinir)
+        const storage = rememberMe ? localStorage : sessionStorage;
+
+        // Çakışmayı önlemek için her iki storage'ı da temizle
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        sessionStorage.removeItem('access_token');
+        sessionStorage.removeItem('refresh_token');
+
+        // Token'ları ilgili alana kaydet
+        storage.setItem('access_token', data.access);
+        storage.setItem('refresh_token', data.refresh);
         
-        // Dashboard'a yönlendir
+        // JWT Payload'ını çöz (Kullanıcı ID'sini ve yetkilerini okumak için)
+        try {
+            const payload = JSON.parse(atob(data.access.split('.')[1]));
+            storage.setItem('user_id', payload.user_id);
+            
+            // İleride admin (1 numaralı ID) veya personeli ayırmak için bu payload'ı kullanacağız.
+            console.log("Giriş başarılı. Kullanıcı ID:", payload.user_id);
+        } catch (e) {
+            console.error("Token çözümlenirken hata oluştu", e);
+        }
+
+        // Görev Yönetim paneline yönlendir
         window.location.href = "dashboard.html";
     })
     .catch(error => {

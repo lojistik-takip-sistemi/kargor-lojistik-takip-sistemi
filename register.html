@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Görev ve Yönetim Platformu | Kayıt Ol</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* index.html ile aynı tasarımsal temeller */
+        :root { --primary: #ff4e50; --secondary: #f9d423; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: radial-gradient(circle at center, #1e293b, #0f172a); height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .register-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 32px; width: 420px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        h2 { color: white; margin-bottom: 25px; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-field { position: relative; display: flex; align-items: center; }
+        .input-field i { position: absolute; left: 20px; color: #64748b; }
+        .input-field input { width: 100%; padding: 14px 20px 14px 50px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; color: white; outline: none; }
+        .register-btn { width: 100%; padding: 16px; margin-top: 10px; border: none; border-radius: 18px; background: linear-gradient(135deg, var(--primary), #b91c1c); color: white; font-weight: 700; cursor: pointer; }
+        .link { color: #94a3b8; font-size: 13px; display: block; margin-top: 15px; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="register-card">
+        <h2>Yeni Hesap Oluştur</h2>
+        <form id="registerForm">
+            <div class="input-group">
+                <div class="input-field">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="regUsername" placeholder="Kullanıcı Adı" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <div class="input-field">
+                    <i class="fa-solid fa-id-card"></i>
+                    <input type="text" id="regFullName" placeholder="Ad Soyad" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <div class="input-field">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="regPassword" placeholder="Şifre" required>
+                </div>
+            </div>
+            <button type="submit" class="register-btn">Kayıt Ol</button>
+        </form>
+        <a href="index.html" class="link">Zaten hesabın var mı? Giriş yap.</a>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const data = {
+                username: document.getElementById('regUsername').value,
+                full_name: document.getElementById('regFullName').value,
+                password: document.getElementById('regPassword').value,
+                role: 'Personel' // Yeni kayıt olanlar varsayılan olarak personel olur
+            };
+
+            fetch('http://127.0.0.1:8000/api/register/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(res => {
+                if (res.ok) {
+                    alert('Kayıt başarılı! Şimdi giriş yapabilirsiniz.');
+                    window.location.href = 'index.html';
+                } else {
+                    res.json().then(err => alert('Hata: ' + JSON.stringify(err)));
+                }
+            });
+        });
+    </script>
+</body>
+</html>

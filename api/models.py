@@ -47,9 +47,13 @@ class Task(models.Model):
     
     due_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    # YENİ EKLENEN SATIR: Aktif/Pasif Kontrolü
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'Tasks'
+        ordering = ['-created_at'] # Sıralama uyarısını çözmek için daha önce eklemiştik
 
     def save(self, *args, **kwargs):
         if not self.task_code:
@@ -77,3 +81,16 @@ class Notification(models.Model):
 
     class Meta:
         db_table = 'Notifications'
+        # YENİ EKLENEN SINIF: İşlem Logları
+class ActionLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    action_type = models.CharField(max_length=50) # Örn: "CREATE", "UPDATE", "DELETE", "DEACTIVATE"
+    description = models.TextField() # Örn: "TSK-1234 kodlu görev silindi."
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'ActionLogs'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.action_type}] {self.user.username if self.user else 'Sistem'} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
