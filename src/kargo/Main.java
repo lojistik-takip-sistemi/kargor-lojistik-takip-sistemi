@@ -1,33 +1,42 @@
 package kargo;
 
 import kargo.api.ApiServisi;
+import java.util.Random;
 
 public class Main {
     public static void main(String[] args) throws InterruptedException {
-        System.out.println("--- 🚚 Kargor Canlı Lojistik Simülasyonu Başlatılıyor ---\n");
+        System.out.println("--- 🚀 Görev Yönetim Simülasyonu Başlatılıyor ---\n");
 
         if (ApiServisi.girisYap("admin", "1234")) {
-            System.out.println("✅ API bağlantısı kuruldu. Operasyon başlıyor...");
+            System.out.println("✅ API bağlantısı kuruldu.");
 
-            String takipNo = "KRG-LIVE-" + (int)(Math.random() * 1000);
-            
-            // 1. ADIM: Kargo Kabul
-            System.out.println("\n[1/3] Kargo şubeye kabul ediliyor...");
-            ApiServisi.kargoKaydet(takipNo, 4.2, 1, 2, 1);
-            Thread.sleep(4000); // 4 saniye bekle
+            // --- DİNAMİK VERİ HAVUZU ---
+            String[] bolgeler = {"Of", "Trabzon Merkez", "Arsin", "Rize Merkez", "Çayeli"};
+            String[] gorevTipleri = {"Günlük Teslimat", "İade Alımı", "Adresten Kargo Alımı", "Şube İçi Düzenleme"};
 
-            // 2. ADIM: Yola Çıkış (Burada ID'yi 1 varsayıyoruz, admin panelinden kargo ID'sine bakabilirsin)
-            System.out.println("[2/3] Kargo yola çıktı, transfer merkezine gidiyor...");
-            // Durum güncellemesi (Gerçek sistemde ID'yi API'den dönen cevaptan alırız)
+            Random rastgele = new Random();
+            String secilenBolge = bolgeler[rastgele.nextInt(bolgeler.length)];
+            String secilenGorev = gorevTipleri[rastgele.nextInt(gorevTipleri.length)];
             
-            Thread.sleep(4000);
+            String aciklama = secilenBolge + " bölgesindeki atanan operasyonları eksiksiz tamamla.";
 
-            // 3. ADIM: Teslimat
-            System.out.println("[3/3] Kargo varış şubesine ulaştı ve Teslim Edildi!");
-            System.out.println("\n✨ Simülasyon tamamlandı. Web panelinden kontrol edebilirsiniz.");
+            System.out.println("\n[1/3] Yeni Görev Sisteme Ekleniyor...");
+            System.out.println("Görev: " + secilenGorev + " | Bölge: " + secilenBolge);
             
+            // Rastgele seçilen verileri API'ye gönderiyoruz (Proje ID: 1, Personel ID: 2)
+            ApiServisi.gorevOlustur(secilenGorev, aciklama, 1, 2);
+            Thread.sleep(3000);
+
+            System.out.println("\n[2/3] Personel (" + secilenBolge + " bölgesi) görevi üzerine aldı, durum: Devam Ediyor...");
+            ApiServisi.gorevDurumGuncelle(1, "Devam_Ediyor");
+            Thread.sleep(3000);
+
+            System.out.println("\n[3/3] Görev başarıyla tamamlandı!");
+            ApiServisi.gorevDurumGuncelle(1, "Tamamlandi");
+            
+            System.out.println("\n✨ İşlem tamamlandı. Web panelinden sonuçları görebilirsiniz.");
         } else {
-            System.out.println("❌ Giriş başarısız!");
+            System.out.println("❌ API Girişi başarısız! Bilgileri kontrol edin.");
         }
     }
 }
