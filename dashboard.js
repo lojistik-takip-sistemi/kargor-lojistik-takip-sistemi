@@ -22,22 +22,37 @@ document.addEventListener("DOMContentLoaded", function() {
         })
         .then(res => res.json())
         .then(data => {
-            // Sayfalama (Pagination) kontrolü eklendi
+            // Sayfalama (Pagination) kontrolü
             allTasks = data.results ? data.results : data;
             renderList(allTasks);
         });
     };
 
+    // XSS Koruması için verileri zararsız hale getiren fonksiyon
+    const escapeHTML = (str) => {
+        if (!str) return '';
+        return String(str).replace(/[&<>'"]/g, 
+            tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag] || tag)
+        );
+    };
+
     const renderList = (data) => {
         const container = document.getElementById('task-list');
+        // task_code, title, vb. zararlı scriptleri engellemek için escapeHTML'den geçirildi
         container.innerHTML = data.slice(-10).reverse().map(t => `
             <div class="item-row">
                 <div>
-                    <strong>[${t.task_code}] ${t.title}</strong><br>
-                    <small>Proje: ${t.project_name} | Atanan: ${t.assigned_to_name || 'Atanmadı'}</small>
+                    <strong>[${escapeHTML(t.task_code)}] ${escapeHTML(t.title)}</strong><br>
+                    <small>Proje: ${escapeHTML(t.project_name)} | Atanan: ${escapeHTML(t.assigned_to_name) || 'Atanmadı'}</small>
                 </div>
                 <div class="status ${t.status === 'Tamamlandi' ? 'delivered' : 'in-transit'}">
-                    ${t.status.replace('_', ' ')}
+                    ${escapeHTML(t.status.replace('_', ' '))}
                 </div>
             </div>
         `).join('');

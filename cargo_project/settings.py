@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from datetime import timedelta
 
 # .env dosyasını sisteme yükle
 load_dotenv()
@@ -67,8 +68,6 @@ WSGI_APPLICATION = 'cargo_project.wsgi.application'
 AUTH_USER_MODEL = 'api.User'
 
 # --- ÖNEMLİ: POST VERİ KAYBI VE 405 HATASI İÇİN ---
-# Django'nun otomatik olarak adresin sonuna '/' ekleyip yönlendirme yapmasını engeller.
-# Bu sayede POST isteklerindeki veriler yönlendirme sırasında kaybolmaz.
 APPEND_SLASH = False
 
 # SQL Server Veritabanı Ayarları (Trusted_Connection ile yerel bağlanma)
@@ -95,7 +94,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-# REST FRAMEWORK: JWT GÜVENLİĞİ VE FİLTRELEME
+# --- REST FRAMEWORK: JWT GÜVENLİĞİ, FİLTRELEME VE BRUTE FORCE KORUMASI ---
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -106,11 +105,33 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    # BRUTE FORCE KORUMASI (Throttling)
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',  # Şifre deneme yanılmalarına karşı
+        'rest_framework.throttling.UserRateThrottle'   # Oturumu açık hesap sömürülerine karşı
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '5/minute',  # Kimliksiz istekler dakikada maksimum 5 kez yapılabilir
+        'user': '100/minute' # Normal personel dakikada maksimum 100 işlem yapabilir
+    }
 }
 
-# --- CORS AYARLARI ---
-# Frontend ve Backend arasındaki iletişimi sağlar.
-CORS_ALLOW_ALL_ORIGINS = True 
+# --- JWT SÜRE VE HEADER AYARLARI ---
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+# --- CORS AYARLARI (GÜVENLİK İÇİN SIKILAŞTIRILDI) ---
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "null"  # Frontend dosyaları yerel dizinden çift tıklayarak açılıyorsa buna ihtiyaç vardır
+]
+
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",
@@ -130,35 +151,10 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
-# --- MAİL VE SAYFALAMA AYARLARI ---
+
 # E-postaları VS Code terminalinde görüntülemek için
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# Global sayfalama (Kargo verileri çoğalınca sistemin çökmemesi için)
-REST_FRAMEWORK['DEFAULT_PAGINATION_CLASS'] = 'rest_framework.pagination.PageNumberPagination'
-REST_FRAMEWORK['PAGE_SIZE'] = 20
-# --- EKLENEN PROFESYONEL BACKEND AYARLARI ---
-
-# 1. DRF ve JWT Ayarları
-REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20,
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-}
-
-from datetime import timedelta
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'AUTH_HEADER_TYPES': ('Bearer',),
-}
-
-# 2. Şifre Sıfırlama Mailleri VS Code Terminaline Düşsün
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# 3. QR Kodlar için Medya Ayarları
-import os
+# QR Kodlar ve Dosyalar için Medya Ayarları
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
