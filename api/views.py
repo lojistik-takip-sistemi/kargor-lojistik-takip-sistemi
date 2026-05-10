@@ -8,6 +8,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny # AllowAny ekle
 from rest_framework import generics # generics eklendi
 from .models import Task, Project, Comment, Notification, ActionLog # ActionLog eklendi
 from .serializers import TaskSerializer, ProjectSerializer, CommentSerializer, NotificationSerializer, ActionLogSerializer # ActionLogSerializer eklendi
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import MyTokenObtainPairSerializer
 
 class DashboardSummaryView(APIView):
     permission_classes = [IsAuthenticated]
@@ -72,10 +74,21 @@ class ActionLogViewSet(viewsets.ReadOnlyModelViewSet):
     # Sadece son 50 logu getir ki sistem yorulmasın
     queryset = ActionLog.objects.all()[:50]
     serializer_class = ActionLogSerializer
-    
+
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+
+    def perform_create(self, serializer):
+        # Yorumu kaydeden kullanıcıyı o anki giriş yapmış kullanıcı yap
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        # Sadece ilgili göreve ait yorumları getirmek için (opsiyonel)
+        task_id = self.request.query_params.get('task_id')
+        if task_id:
+            return Comment.objects.filter(task_id=task_id)
+        return Comment.objects.all()
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
@@ -86,3 +99,6 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (AllowAny,) # Burası önemli: Herkese açık!
     serializer_class = UserSerializer
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer

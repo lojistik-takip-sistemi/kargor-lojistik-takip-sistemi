@@ -1,6 +1,7 @@
 from .models import ActionLog # En üste eklemeyi unutma (veya mevcut model importuna dahil et)
 from rest_framework import serializers
 from .models import User, Project, Task, Comment, Notification
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,3 +48,20 @@ class ActionLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActionLog
         fields = ['id', 'user_name', 'action_type', 'description', 'created_at']
+
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # Token içine kullanıcının rolünü ekliyoruz
+        token['role'] = user.role 
+        return token
+
+class CommentSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.full_name', read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'task', 'user', 'user_name', 'content', 'created_at']
+        read_only_fields = ['user'] # Kullanıcıyı biz otomatik atayacağız

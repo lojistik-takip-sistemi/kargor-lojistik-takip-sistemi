@@ -32,9 +32,23 @@
 <body>
 
     <div class="header">
-        <h2>Kontrol Paneli</h2>
+    <h2>Kontrol Paneli</h2>
+    
+    <div style="display: flex; gap: 20px; align-items: center;">
+        
+        <div id="notificationBell" style="position: relative; cursor: pointer; user-select: none;">
+            <span style="font-size: 24px;">🔔</span>
+            <span id="notifCount" style="position: absolute; top: -5px; right: -5px; background: #ff4e50; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; display: none; font-weight: bold; border: 2px solid #0f172a;">0</span>
+            
+            <div id="notifDropdown" style="display: none; position: absolute; top: 40px; right: 0; width: 300px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); z-index: 2000; padding: 15px;">
+                <h4 style="margin-bottom: 12px; font-size: 14px; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Bildirimler</h4>
+                <div id="notifList" style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+                    </div>
+            </div>
+        </div>
         <button id="logoutBtn" class="logout-btn">Güvenli Çıkış</button>
     </div>
+</div>
 
     <div class="stats">
         <div class="card"><h4>Toplam Proje</h4><h2 id="stat-total-projects">0</h2></div>
@@ -46,7 +60,10 @@
 
     <div class="card">
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3>Son Görevler</h3>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <h3 style="margin: 0;">Son Görevler</h3>
+                <button id="openLogModalBtn" style="background: transparent; color: #94a3b8; border: 1px solid #94a3b8; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; transition: 0.3s;">İşlem Geçmişi</button>
+            </div>
             <button id="openModalBtn" class="add-btn">+ Yeni Görev Ekle</button>
         </div>
         <div id="task-list"></div>
@@ -66,8 +83,9 @@
                 </div>
 
                 <div style="margin-bottom: 15px;">
-                    <label style="color: #94a3b8; font-size: 13px; display: block; margin-bottom: 8px;">Proje ID</label>
-                    <input type="number" id="taskProject" required placeholder="Örn: 1" style="width: 100%; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none;">
+                    <label style="color: #94a3b8; font-size: 13px; display: block; margin-bottom: 8px;">Bağlı Olduğu Proje</label>
+                    <select id="taskProject" required style="width: 100%; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none;">
+                    </select>
                 </div>
 
                 <div style="margin-bottom: 25px;">
@@ -107,6 +125,37 @@
             </form>
         </div>
     </div>
+
+    <div id="logModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px);">
+        <div style="background: #1e293b; padding: 35px; border-radius: 25px; width: 500px; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h3 style="color: white; margin: 0;">Sistem İşlem Geçmişi</h3>
+                <span id="closeLogModalBtn" style="color: #94a3b8; cursor: pointer; font-size: 24px; transition: 0.3s;">&times;</span>
+            </div>
+            
+            <div id="log-list" style="display: flex; flex-direction: column; gap: 10px;">
+                </div>
+        </div>
+    </div>
+
+    <div id="commentModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1100;">
+    <div style="background: #1e293b; padding: 30px; border-radius: 20px; width: 500px; max-height: 90vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);">
+        <h3 id="modalTaskTitle" style="color: white; margin-bottom: 10px;">Görev Başlığı</h3>
+        <p id="modalTaskDesc" style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">Açıklama buraya gelecek...</p>
+        
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
+        
+        <h4 style="margin-bottom: 15px;">Yorumlar</h4>
+        <div id="comment-list" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;"></div>
+        
+        <form id="addCommentForm">
+            <input type="hidden" id="commentTaskId">
+            <textarea id="commentContent" placeholder="Bir yorum yaz..." required style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; resize: none; margin-bottom: 10px;"></textarea>
+            <button type="submit" style="width: 100%; padding: 12px; background: #4ade80; color: #064e3b; border: none; border-radius: 10px; font-weight: bold; cursor: pointer;">Gönder</button>
+        </form>
+        <button onclick="document.getElementById('commentModal').style.display='none'" style="width: 100%; margin-top: 10px; background: transparent; color: #94a3b8; border: none; cursor: pointer;">Kapat</button>
+    </div>
+</div>
 
     <script src="dashboard.js"></script>
 </body>

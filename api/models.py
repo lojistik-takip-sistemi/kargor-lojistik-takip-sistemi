@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 import uuid
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class User(AbstractUser):
     ROLE_CHOICES = (
@@ -94,3 +96,24 @@ class ActionLog(models.Model):
 
     def __str__(self):
         return f"[{self.action_type}] {self.user.username if self.user else 'Sistem'} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+    
+@receiver(post_save, sender=Task)
+def create_task_notification(sender, instance, created, **kwargs):
+    if created and instance.assigned_to:
+        Notification.objects.create(
+            user=instance.assigned_to,
+            message=f"Yeni bir görev size atandı: {instance.title}",
+            notification_type="GOREV"
+        )
+
+@receiver(post_save, sender=Comment)
+def create_comment_notification(sender, instance, created, **kwargs):
+    if created:
+        # Görevi atayan kişiye veya görevdeki sorumluya bildirim gitsin
+        task = instance.task
+        if task.assigned_to and task.assigned_to != instance.user:
+            Notification.objects.create(
+                user=task.assigned_to,
+                message=f"'{task.title}' görevine yeni bir yorum yapıldı.",
+                notification_type="YORUM"
+            )
