@@ -60,18 +60,93 @@ document.addEventListener("DOMContentLoaded", function() {
     // --- VERİ ÇEKME (READ) İŞLEMLERİ ---
     let allTasks = []; 
 
-    // Üst panel istatistiklerini getir
-    const fetchDashboardStats = () => {
-        fetch('http://127.0.0.1:8000/api/dashboard/summary/', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        })
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById('stat-total-projects').innerText = data.total_projects || 0;
-            document.getElementById('stat-total-tasks').innerText = data.total_tasks || 0;
-            document.getElementById('stat-completed-tasks').innerText = data.completed_tasks || 0;
+    let myChart = null; // Grafiği globalde tutalım ki güncellenebilsin
+
+
+const fetchDashboardStats = () => {
+    // 1. Backend'den verileri çekiyoruz
+    fetch('http://127.0.0.1:8000/api/dashboard/summary/', {
+        headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(res => res.json())
+    .then(data => {
+        // Konsola yazdırarak verinin gelip gelmediğini kontrol edelim (F12 ile bakabilirsin)
+        console.log("Gelen İstatistikler:", data);
+
+        // 2. Üstteki sayaç kartlarını güncelle
+        document.getElementById('stat-total-projects').innerText = data.total_projects || 0;
+        document.getElementById('stat-total-tasks').innerText = data.total_tasks || 0;
+        document.getElementById('stat-completed-tasks').innerText = data.completed_tasks || 0;
+
+        // 3. Grafik Tuvalini (Canvas) Yakala
+        const ctx = document.getElementById('taskChart').getContext('2d');
+        
+        // Önemli: Eğer halihazırda bir grafik varsa, üzerine binmemesi için onu yok et
+        if (myChart) { 
+            myChart.destroy(); 
+        }
+
+        const perfContainer = document.getElementById('performance-list');
+        if (perfContainer && data.performance) {
+            if (data.performance.length > 0) {
+                perfContainer.innerHTML = data.performance.map((p, index) => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-weight: bold; color: ${index === 0 ? '#facc15' : '#94a3b8'}">#${index + 1}</span>
+                            <span style="font-size: 14px; font-weight: 500;">${escapeHTML(p.username)}</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="color: #4ade80; font-weight: bold;">${p.completed_count} Bitti</span>
+                            <br>
+                            <small style="color: #64748b; font-size: 10px;">Toplam: ${p.total_assigned} Görev</small>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                perfContainer.innerHTML = "<p style='color: #94a3b8; font-size: 13px;'>Henüz veri bulunmuyor.</p>";
+            }
+        }
+
+        // 4. Yeni Grafiği Oluştur
+        myChart = new Chart(ctx, {
+            type: 'doughnut', // Simit grafik tipi
+            data: {
+                labels: ['Yapılacak', 'Devam Ediyor', 'Tamamlandı'],
+                datasets: [{
+                    label: 'Görev Sayısı',
+                    data: [
+                        data.todo_tasks || 0,       // Backend'den gelen 'Yapilacak' sayısı
+                        data.ongoing_tasks || 0,    // Backend'den gelen 'Devam_Ediyor' sayısı
+                        data.completed_tasks || 0   // Backend'den gelen 'Tamamlandi' sayısı
+                    ],
+                    backgroundColor: [
+                        '#ff4e50', // Kırmızı
+                        '#facc15', // Sarı
+                        '#4ade80'  // Yeşil
+                    ],
+                    hoverOffset: 20,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Kutunun boyutuna uyum sağlaması için
+                plugins: {
+                    legend: {
+                        position: 'bottom', // Renk açıklamaları altta dursun
+                        labels: {
+                            color: '#94a3b8', // Gri metin rengi
+                            padding: 20,
+                            font: { size: 12, family: "'Inter', sans-serif" }
+                        }
+                    }
+                },
+                cutout: '70%' // Ortadaki boşluk oranı
+            }
         });
-    };
+    })
+    .catch(error => console.error("İstatistikler çekilirken hata oluştu:", error));
+};
 
     // Aktif görevleri listele
     const fetchTasks = () => {
@@ -407,7 +482,84 @@ document.addEventListener("DOMContentLoaded", function() {
     setInterval(fetchNotifications, 30000);
     fetchNotifications(); // Sayfa açılınca ilk kez çalıştır
 
+function openProfileModal() {
+    fetch('http://127.0.0.1:8000/api/profile/', {
+        headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(res => res.json())
+    .then(user => {
+        document.getElementById('profileUsername').value = user.username;
+        document.getElementById('profileFullName').value = user.full_name || '';
+        document.getElementById('profileEmail').value = user.email || '';
+        document.getElementById('profileModal').style.display = 'flex';
+    });
+}
 
+document.getElementById('profileForm').onsubmit = function(e) {
+    e.preventDefault();
+    const data = {
+        full_name: document.getElementById('profileFullName').value,
+        email: document.getElementById('profileEmail').value
+    };
+
+    fetch('http://127.0.0.1:8000/api/profile/', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        alert("Profil güncellendi!");
+        closeModal('profileModal');
+        fetchDashboardStats(); // Liderlik tablosunu tazele
+    });
+};
+
+document.getElementById('userAddForm').onsubmit = function(e) {
+    e.preventDefault();
+    const data = {
+        username: document.getElementById('addUsername').value,
+        password: document.getElementById('addPassword').value,
+        full_name: document.getElementById('addFullName').value,
+        email: document.getElementById('addEmail').value,
+        role: document.getElementById('addRole').value
+    };
+
+    fetch('http://127.0.0.1:8000/api/users/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(data)
+    })
+    .then(res => {
+        if(res.ok) {
+            alert("Yeni personel başarıyla eklendi!");
+            closeModal('userModal');
+            document.getElementById('userAddForm').reset();
+            fetchDashboardStats(); // Liderlik tablosunu güncelle
+        } else {
+            alert("Hata: Kullanıcı adı zaten alınmış olabilir.");
+        }
+    });
+};
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+}
 
 
 });

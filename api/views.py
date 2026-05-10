@@ -1,104 +1,102 @@
-from rest_framework import viewsets
+from django.shortcuts import render
+from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .models import User, Project, Task, Comment, Notification
-from .serializers import UserSerializer, ProjectSerializer, TaskSerializer, CommentSerializer, NotificationSerializer
-from rest_framework.permissions import IsAuthenticated, AllowAny # AllowAny eklendi
-from rest_framework import generics # generics eklendi
-from .models import Task, Project, Comment, Notification, ActionLog # ActionLog eklendi
-from .serializers import TaskSerializer, ProjectSerializer, CommentSerializer, NotificationSerializer, ActionLogSerializer # ActionLogSerializer eklendi
-from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import MyTokenObtainPairSerializer
+from django.db.models import Count, Q
+from django.contrib.auth import get_user_model
+from .models import Project, Task, Notification, Comment
+from .serializers import TaskSerializer, UserProfileSerializer
 
-class DashboardSummaryView(APIView):
-    permission_classes = [IsAuthenticated]
-    
-    def get(self, request):
-        total_projects = Project.objects.count()
-        total_tasks = Task.objects.count()
-        completed_tasks = Task.objects.filter(status='Tamamlandi').count()
-        
-        return Response({
-            'total_projects': total_projects,
-            'total_tasks': total_tasks,
-            'completed_tasks': completed_tasks,
-            'completion_rate': round((completed_tasks / total_tasks * 100) if total_tasks > 0 else 0, 2)
-        })
+User = get_user_model()
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-class ProjectViewSet(viewsets.ModelViewSet):
-    queryset = Project.objects.all()
-    serializer_class = ProjectSerializer
-
-class TaskViewSet(viewsets.ModelViewSet):
+# --- 1. GÖREV YÖNETİMİ (CRUD) ---
+# Bu iki sınıf, eskiden yazdığımız uzun listeleme/silme kodlarının hepsini kapsar.
+class TaskListView(generics.ListCreateAPIView):
+    queryset = Task.objects.filter(is_active=True).order_by('-created_at')
     serializer_class = TaskSerializer
+
+class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Task.objects.filter(is_active=True)
+    serializer_class = TaskSerializer
+
+
+# --- 2. İSTATİSTİKLER VE GRAFİKLER ---
+class DashboardSummaryView(APIView):
+    def get(self, request):
+        try:
+            total_projects = Project.objects.count()
+            total_tasks = Task.objects.filter(is_active=True).count()
+            
+            # Grafik için durumları say
+            status_counts = Task.objects.filter(is_active=True).values('status').annotate(total=Count('status'))
+            stats = {item['status']: item['total'] for item in status_counts}
+
+            # Personel Performansı (Liderlik Tablosu)
+            users = User.objects.all()[:5]
+            performance_list = []
+            for user in users:
+                c_count = Task.objects.filter(assigned_to=user, status='Tamamlandi', is_active=True).count()
+                t_count = Task.objects.filter(assigned_to=user, is_active=True).count()
+                performance_list.append({
+                    "username": user.username,
+                    "completed_count": c_count,
+                    "total_assigned": t_count
+                })
+
+            return Response({
+                "total_projects": total_projects,
+                "total_tasks": total_tasks,
+                "completed_tasks": stats.get('Tamamlandi', 0),
+                "ongoing_tasks": stats.get('Devam_Ediyor', 0),
+                "todo_tasks": stats.get('Yapilacak', 0),
+                "performance": performance_list
+            })
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
+
+# --- 3. PROFİL AYARLARI ---
+class ProfileView(APIView):
+    def get(self, request):
+        serializer = UserProfileSerializer(request.user)
+        return Response(serializer.data)
+
+    def put(self, request):
+        serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+
+# --- 4. BİLDİRİMLER ---
+class NotificationListView(APIView):
+    def get(self, request):
+        notifs = Notification.objects.filter(user=request.user).order_by('-created_at')[:10]
+        data = [{
+            "id": n.id,
+            "message": n.message, 
+            "is_read": n.is_read, 
+            "created_at": n.created_at
+        } for n in notifs]
+        return Response(data)
+
+
+# --- 5. YORUMLAR ---
+class CommentListView(APIView):
+    def get(self, request, task_id):
+        comments = Comment.objects.filter(task_id=task_id).order_by('-created_at')
+        data = [{
+            "user": c.user.username, 
+            "text": c.text, 
+            "created_at": c.created_at
+        } for c in comments]
+        return Response(data)
     
-    def get_queryset(self):
-        # 1. KONTROL: Sadece 'is_active=True' olan yani silinmemiş aktif görevleri listele
-        return Task.objects.filter(is_active=True)
+from .serializers import UserCreateSerializer
 
-    def perform_create(self, serializer):
-        # Görev eklendiğinde log tut
-        task = serializer.save()
-        ActionLog.objects.create(
-            user=self.request.user,
-            action_type="CREATE",
-            description=f"[{task.task_code}] kodlu görev sisteme eklendi."
-        )
-
-    def perform_update(self, serializer):
-        # Görev güncellendiğinde log tut
-        task = serializer.save()
-        ActionLog.objects.create(
-            user=self.request.user,
-            action_type="UPDATE",
-            description=f"[{task.task_code}] kodlu görevin durumu '{task.status}' olarak güncellendi."
-        )
-
-    def perform_destroy(self, instance):
-        # 2. KONTROL: Görevi veritabanından kalıcı SİLME! Sadece pasife çek (Soft Delete)
-        instance.is_active = False
-        instance.save()
-        
-        # Silme (Pasife alma) işlemini logla
-        ActionLog.objects.create(
-            user=self.request.user,
-            action_type="DELETE",
-            description=f"[{instance.task_code}] kodlu görev silindi (pasife alındı)."
-        )
-class ActionLogViewSet(viewsets.ReadOnlyModelViewSet):
-    # Sadece son 50 logu getir ki sistem yorulmasın
-    queryset = ActionLog.objects.all()[:50]
-    serializer_class = ActionLogSerializer
-
-class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
-
-    def perform_create(self, serializer):
-        # Yorumu kaydeden kullanıcıyı o anki giriş yapmış kullanıcı yap
-        serializer.save(user=self.request.user)
-
-    def get_queryset(self):
-        # Sadece ilgili göreve ait yorumları getirmek için (opsiyonel)
-        task_id = self.request.query_params.get('task_id')
-        if task_id:
-            return Comment.objects.filter(task_id=task_id)
-        return Comment.objects.all()
-
-class NotificationViewSet(viewsets.ModelViewSet):
-    queryset = Notification.objects.all()
-    serializer_class = NotificationSerializer
-
-# Yeni kayıt olanlar için token istemeyen özel uç nokta
-class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    permission_classes = (AllowAny,) # Burası önemli: Herkese açık!
-    serializer_class = UserSerializer
-
-class MyTokenObtainPairView(TokenObtainPairView):
-    serializer_class = MyTokenObtainPairSerializer
+class UserManagementView(generics.ListCreateAPIView):
+    queryset = User.objects.all().order_by('username')
+    serializer_class = UserCreateSerializer
+    # Sadece giriş yapmış ve yönetici olanlar görebilsin (Opsiyonel)
+    # permission_classes = [permissions.IsAuthenticated]

@@ -1,38 +1,20 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenRefreshView
+from django.urls import path
 from .views import (
-    UserViewSet, 
-    ProjectViewSet, 
-    TaskViewSet, 
-    CommentViewSet, 
-    NotificationViewSet, 
+    TaskListView, 
+    TaskDetailView, 
     DashboardSummaryView, 
-    RegisterView, 
-    ActionLogViewSet,
-    MyTokenObtainPairView # Yeni eklediğimiz özel token görünümü
+    ProfileView,
+    NotificationListView,
+    CommentListView,
+    UserManagementView
 )
 
-# Router (ViewSet'ler için otomatik URL'ler)
-router = DefaultRouter()
-router.register(r'users', UserViewSet)
-router.register(r'projects', ProjectViewSet)
-router.register(r'tasks', TaskViewSet, basename='task')
-router.register(r'comments', CommentViewSet)
-router.register(r'notifications', NotificationViewSet)
-router.register(r'logs', ActionLogViewSet, basename='actionlogs')
-
-# URL Patterns
 urlpatterns = [
-    # Router üzerinden gelen ViewSet URL'leri (tasks, projects vb.)
-    path('', include(router.urls)),
-
-    # Kimlik Doğrulama (Auth) URL'leri
-    # Aşağıdaki 'token/' satırı artık bizim özel 'role' bilgisini içeren view'ımızı kullanıyor
-    path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('register/', RegisterView.as_view(), name='auth_register'),
-
-    # İstatistikler ve Özet Veriler
-    path('dashboard/summary/', DashboardSummaryView.as_view(), name='dashboard_summary'),
+    path('tasks/', TaskListView.as_view(), name='task-list'),
+    path('tasks/<int:pk>/', TaskDetailView.as_view(), name='task-detail'),
+    path('dashboard/summary/', DashboardSummaryView.as_view(), name='dashboard-summary'),
+    path('profile/', ProfileView.as_view(), name='profile'),
+    path('notifications/', NotificationListView.as_view(), name='notifications'),
+    path('tasks/<int:task_id>/comments/', CommentListView.as_view(), name='task-comments'),
+    path('users/', UserManagementView.as_view(), name='user-management'),
 ]

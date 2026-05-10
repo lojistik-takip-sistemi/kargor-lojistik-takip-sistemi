@@ -65,3 +65,22 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ['id', 'task', 'user', 'user_name', 'content', 'created_at']
         read_only_fields = ['user'] # Kullanıcıyı biz otomatik atayacağız
+    
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'full_name', 'email', 'role']
+        read_only_fields = ['username', 'role'] # Kullanıcı adı ve rol değiştirilemez 
+
+from django.contrib.auth.hashers import make_password
+
+class UserCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'password', 'full_name', 'email', 'role']
+
+    def create(self, validated_data):
+        # Şifreyi güvenli hale getiriyoruz
+        validated_data['password'] = make_password(validated_data['password'])
+        return super().create(validated_data)
