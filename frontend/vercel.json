@@ -7,11 +7,49 @@
     }
   ],
   "routes": [
-    { "src": "/", "dest": "/index.html" },
-    { "src": "/dashboard", "dest": "/dashboard.html" },
-    { "src": "/kullanici", "dest": "/kullanici.html" },
-    { "src": "/personel", "dest": "/personel.html" },
-    { "src": "/register", "dest": "/register.html" },
-    { "src": "/reset-password", "dest": "/reset-password.html" }
+    {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/dashboard/",
+      "dest": "/dashboard.html"
+    },
+    {
+      "src": "/dashboard",
+      "dest": "/dashboard.html"
+    },
+    {
+      "src": "/kullanici/",
+      "dest": "/kullanici.html"
+    },
+    {
+      "src": "/kullanici",
+      "dest": "/kullanici.html"
+    },
+    {
+      "src": "/personel/",
+      "dest": "/personel.html"
+    },
+    {
+      "src": "/personel",
+      "dest": "/personel.html"
+    },
+    {
+      "src": "/register/",
+      "dest": "/register.html"
+    },
+    {
+      "src": "/register",
+      "dest": "/register.html"
+    },
+    {
+      "src": "/reset-password/",
+      "dest": "/reset-password.html"
+    },
+    {
+      "src": "/reset-password",
+      "dest": "/reset-password.html"
+    }
   ]
 }

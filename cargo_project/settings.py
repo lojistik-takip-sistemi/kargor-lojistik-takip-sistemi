@@ -140,9 +140,9 @@ SIMPLE_JWT = {
 }
 
 # --- CORS AYARLARI ---
-# Frontend URL'i belli olunca buraya ekle, CORS_ALLOW_ALL_ORIGINS=False yap
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = True  # Tüm originlere izin ver (geliştirme için)
 CORS_ALLOWED_ORIGINS = [
+    "https://test-kargo.vercel.app",
     "https://kargor-lojistik-takip-sistemi.onrender.com",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
