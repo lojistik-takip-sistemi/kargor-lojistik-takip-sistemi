@@ -9,13 +9,29 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'password', 'full_name', 'email', 'role', 'phone']
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {
+            'password': {'write_only': True, 'required': False}
+        }
 
     def create(self, validated_data):
+        # Yeni kullanıcı oluştururken şifreyi hashler
         user = User(**validated_data)
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+    def update(self, instance, validated_data):
+        # Profil güncellenirken veya admin şifre değiştirirken hashleme yapar (Kritik Düzeltme)
+        password = validated_data.pop('password', None)
+        
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        if password:
+            instance.set_password(password) # Şifreyi Django'nun kabul edeceği formata çevirir
+            
+        instance.save()
+        return instance
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:

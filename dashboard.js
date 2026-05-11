@@ -62,7 +62,6 @@ document.addEventListener("DOMContentLoaded", function() {
         const kuryeler = users.filter(u => u.role === 'Personel');
         const musteriler = users.filter(u => u.role === 'Kullanici');
 
-        // KURYE LİSTESİ (SİLME BUTONU EKLENDİ)
         document.getElementById('courier-list').innerHTML = kuryeler.map(u => `
             <div class="item-row">
                 <div><strong>${escapeHTML(u.full_name)}</strong><br><small>${u.email}</small></div>
@@ -75,36 +74,81 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById('customer-list').innerHTML = musteriler.map(u => `
             <div class="item-row">
                 <div><strong>${escapeHTML(u.full_name)}</strong><br><small>${u.email}</small></div>
-                <button onclick="deleteUser(${u.id})" class="badge" style="background:var(--danger);">MÜŞTERİYİ SİL</button>
+                <div style="display:flex; gap:5px;">
+                    <button onclick="openCustomerDetailModal(${u.id}, '${escapeHTML(u.full_name)}')" class="badge" style="background:var(--warning); color:black;">KARGO GEÇMİŞİ</button>
+                    <button onclick="deleteUser(${u.id})" class="badge" style="background:var(--danger);">MÜŞTERİYİ SİL</button>
+                </div>
             </div>`).join('');
     };
 
-    // --- KULLANICI SİLME FONKSİYONU ---
+    // --- PROFİL GÜNCELLEME MANTIĞI ---
+    window.openProfileModal = () => {
+        fetch('http://127.0.0.1:8000/api/profile/', { headers: { 'Authorization': 'Bearer ' + token }})
+        .then(res => res.json()).then(u => {
+            document.getElementById('profileUsername').value = u.username;
+            document.getElementById('profileFullName').value = u.full_name;
+            document.getElementById('profileEmail').value = u.email;
+            document.getElementById('profileNewPassword').value = "";
+            document.getElementById('profileConfirmPassword').value = "";
+            document.getElementById('profileModal').style.display = 'flex';
+        });
+    };
+
+    document.getElementById('profileForm').onsubmit = (e) => {
+        e.preventDefault();
+        const fullName = document.getElementById('profileFullName').value;
+        const email = document.getElementById('profileEmail').value;
+        const newPass = document.getElementById('profileNewPassword').value;
+        const confirmPass = document.getElementById('profileConfirmPassword').value;
+
+        if (newPass && newPass !== confirmPass) {
+            alert("Yeni şifreler birbiriyle eşleşmiyor!");
+            return;
+        }
+
+        const payload = { full_name: fullName, email: email };
+        if (newPass) payload.password = newPass;
+
+        fetch('http://127.0.0.1:8000/api/profile/', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify(payload)
+        })
+        .then(res => {
+            if (res.ok) {
+                alert("Profil başarıyla güncellendi!");
+                document.getElementById('profileModal').style.display = 'none';
+            } else {
+                alert("Güncelleme sırasında bir hata oluştu.");
+            }
+        });
+    };
+
+    // --- KULLANICI SİLME ---
     window.deleteUser = (userId) => {
         if (confirm("Bu kullanıcıyı sistemden tamamen silmek istediğinize emin misiniz?")) {
             fetch(`http://127.0.0.1:8000/api/users/${userId}/`, {
                 method: 'DELETE',
                 headers: { 'Authorization': 'Bearer ' + token }
-            })
-            .then(res => {
-                if (res.ok) {
-                    alert("Kullanıcı başarıyla silindi.");
-                    fetchUsers(); // Listeyi yenile
-                } else {
-                    alert("Silme işlemi başarısız.");
-                }
-            });
+            }).then(res => { if (res.ok) { alert("Kullanıcı silindi."); fetchUsers(); } });
         }
     };
 
-    // --- KURYE GEÇMİŞİ ---
+    // --- KURYE VE MÜŞTERİ GEÇMİŞİ MODALLARI ---
     window.openCourierDetailModal = (courierId, courierName) => {
         document.getElementById('detailCourierName').innerText = courierName;
         const history = allTasks.filter(t => t.assigned_to === courierId && t.status === 'Tamamlandi');
-        document.getElementById('courier-task-history').innerHTML = history.length === 0 ? 
-            "<p style='color:var(--text-muted); text-align:center;'>Geçmiş iş bulunamadı.</p>" :
+        document.getElementById('courier-task-history').innerHTML = history.length === 0 ? "<p style='color:var(--text-muted); text-align:center;'>Geçmiş iş bulunamadı.</p>" :
             history.map(t => `<div style="background:rgba(255,255,255,0.02); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);"><strong>${t.title}</strong><br><small>${t.origin} ➔ ${t.destination}</small></div>`).join('');
         document.getElementById('courierDetailModal').style.display = 'flex';
+    };
+
+    window.openCustomerDetailModal = (customerId, customerName) => {
+        document.getElementById('detailCustomerName').innerText = customerName;
+        const history = allTasks.filter(t => t.customer === customerId);
+        document.getElementById('customer-task-history').innerHTML = history.length === 0 ? "<p style='color:var(--text-muted); text-align:center;'>Gönderim bulunamadı.</p>" :
+            history.map(t => `<div style="background:rgba(255,255,255,0.02); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);"><strong>${t.title}</strong><br><small>${t.status.replace('_',' ')} | ${t.origin} ➔ ${t.destination}</small></div>`).join('');
+        document.getElementById('customerDetailModal').style.display = 'flex';
     };
 
     // --- DİĞER İŞLEMLER ---
@@ -130,7 +174,6 @@ document.addEventListener("DOMContentLoaded", function() {
             const users = data.results || data;
             const options = '<option value="">-- Kurye Seçin --</option>' + 
                 users.filter(u => u.role === 'Personel').map(u => `<option value="${u.id}">${escapeHTML(u.full_name || u.username)}</option>`).join('');
-            document.getElementById('taskAssignee').innerHTML = options;
             document.getElementById('updateTaskAssignee').innerHTML = options;
         });
     };
@@ -143,25 +186,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const renderPerformance = (perf) => {
         const perfList = document.getElementById('performance-list');
-        perfList.innerHTML = (perf && perf.length > 0) ? 
-            perf.map((p, i) => `<div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.02); border-radius:10px; margin-bottom:5px;"><span>#${i+1} ${p.username}</span><span style="color:var(--success);">${p.completed_count} Teslimat</span></div>`).join('') : "";
+        perfList.innerHTML = (perf && perf.length > 0) ? perf.map((p, i) => `<div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.02); border-radius:10px; margin-bottom:5px;"><span>#${i+1} ${p.username}</span><span style="color:var(--success);">${p.completed_count} Teslimat</span></div>`).join('') : "";
     };
 
     const escapeHTML = (s) => s ? s.toString().replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":"&#39;",'"':'&quot;'}[c])) : '';
     document.getElementById('logoutBtn').onclick = () => { localStorage.clear(); window.location.href="index.html"; };
     
-    // Sayfa ilk açıldığında
     fetchStats(); fetchTasks();
 });
-
-// Profil Ayarları Açma
-function openProfileModal() {
-    const token = localStorage.getItem('access_token');
-    fetch('http://127.0.0.1:8000/api/profile/', { headers: { 'Authorization': 'Bearer ' + token }})
-    .then(res => res.json()).then(u => {
-        document.getElementById('profileUsername').value = u.username;
-        document.getElementById('profileFullName').value = u.full_name;
-        document.getElementById('profileEmail').value = u.email;
-        document.getElementById('profileModal').style.display = 'flex';
-    });
-}

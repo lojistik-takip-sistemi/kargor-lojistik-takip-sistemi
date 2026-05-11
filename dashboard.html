@@ -50,6 +50,7 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(10px); }
         .modal-content { background: #1e293b; padding: 35px; border-radius: 25px; width: 500px; border: 1px solid rgba(255,255,255,0.1); max-height: 85vh; overflow-y: auto; }
         input, select, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none; }
+        label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -61,7 +62,6 @@
             <div class="nav-item" onclick="switchPanel('kurye-panel', this)"><i class="fa-solid fa-truck-fast"></i> Kuryeler</div>
             <div class="nav-item" onclick="switchPanel('musteri-panel', this)"><i class="fa-solid fa-users"></i> Müşteriler</div>
             <div class="nav-item" onclick="openProfileModal()"><i class="fa-solid fa-user-gear"></i> Profil Ayarları</div>
-            <div class="nav-item" onclick="openLogModal()"><i class="fa-solid fa-clock-rotate-left"></i> İşlem Logları</div>
         </div>
         <div style="margin-top: auto;">
             <button id="logoutBtn" class="nav-item" style="background:none; border:none; width:100%; color:var(--danger);"><i class="fa-solid fa-power-off"></i> Güvenli Çıkış</button>
@@ -141,6 +141,15 @@
         </div>
     </div>
 
+    <div id="customerDetailModal" class="modal">
+        <div class="modal-content" style="width: 600px;">
+            <h3 id="detailCustomerName" style="color:var(--warning); margin-bottom:10px;">Müşteri İsmi</h3>
+            <p style="color:var(--text-muted); font-size:13px; margin-bottom:20px;">Kargo Gönderim Geçmişi</p>
+            <div id="customer-task-history" style="display:flex; flex-direction:column; gap:10px;"></div>
+            <button onclick="document.getElementById('customerDetailModal').style.display='none'" style="width:100%; margin-top:20px; padding:12px; border-radius:12px; border:none; cursor:pointer; background:rgba(255,255,255,0.05); color:white;">Kapat</button>
+        </div>
+    </div>
+
     <div id="updateModal" class="modal">
         <div class="modal-content">
             <h3>Kargo Detayları</h3>
@@ -163,18 +172,33 @@
     </div>
 
     <div id="taskModal" class="modal"><div class="modal-content"><h3>Yeni Görev Yaz</h3><form id="createTaskForm"><input type="text" id="taskTitle" placeholder="Başlık" required><select id="taskProject" required></select><select id="taskAssignee" required></select><button type="submit" style="background:var(--primary); color:white; border:none; padding:15px; border-radius:12px; width:100%; cursor:pointer;">Oluştur</button></form><button onclick="document.getElementById('taskModal').style.display='none'" style="background:none; border:none; color:var(--text-muted); width:100%; margin-top:10px; cursor:pointer;">İptal</button></div></div>
-    <div id="logModal" class="modal"><div class="modal-content" style="width: 600px;"><h3>İşlem Geçmişi</h3><div id="log-list" style="max-height:400px; overflow-y:auto;"></div><button onclick="document.getElementById('logModal').style.display='none'" style="width:100%; margin-top:15px; padding:10px; border-radius:10px; border:none; cursor:pointer;">Kapat</button></div></div>
+    
     <div id="commentModal" class="modal"><div class="modal-content"><h3 id="modalTaskTitle"></h3><div id="comment-list" style="margin-bottom:15px;"></div><form id="addCommentForm"><input type="hidden" id="commentTaskId"><textarea id="commentContent" placeholder="Yorumunuz..."></textarea><button type="submit" style="background:var(--success); color:#064e3b; border:none; padding:10px; border-radius:10px; width:100%; cursor:pointer;">Yorum Yap</button></form><button onclick="document.getElementById('commentModal').style.display='none'" style="background:none; border:none; color:var(--text-muted); width:100%; margin-top:10px; cursor:pointer;">Kapat</button></div></div>
+    
     <div id="userModal" class="modal"><div class="modal-content"><h3>Kullanıcı/Kurye Ekle</h3><form id="userAddForm"><input type="text" id="addUsername" placeholder="Kullanıcı Adı" required><input type="password" id="addPassword" placeholder="Şifre" required><input type="text" id="addFullName" placeholder="Ad Soyad" required><input type="email" id="addEmail" placeholder="E-posta" required><select id="addRole"><option value="Personel">Personel</option><option value="Yonetici">Yönetici</option><option value="Kullanici">Müşteri</option></select><button type="submit" style="background:var(--primary); color:white; border:none; padding:15px; border-radius:12px; width:100%; cursor:pointer;">Kaydet</button></form><button onclick="document.getElementById('userModal').style.display='none'" style="background:none; border:none; color:var(--text-muted); width:100%; margin-top:10px; cursor:pointer;">Kapat</button></div></div>
     
     <div id="profileModal" class="modal">
-        <div class="modal-content" style="width: 400px;">
-            <h3>Profil Ayarları</h3>
+        <div class="modal-content" style="width: 450px;">
+            <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-user-gear"></i> Profil ve Güvenlik Ayarları</h3>
             <form id="profileForm">
-                <label>Kullanıcı Adı</label><input type="text" id="profileUsername" disabled>
-                <label>Ad Soyad</label><input type="text" id="profileFullName" required>
-                <label>E-posta</label><input type="email" id="profileEmail" required>
-                <button type="submit" style="background:var(--primary); color:white; border:none; padding:12px; border-radius:12px; width:100%; cursor:pointer;">Kaydet</button>
+                <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; margin-bottom: 15px;">
+                    <label>Kullanıcı Adı (Değiştirilemez)</label>
+                    <input type="text" id="profileUsername" disabled style="opacity: 0.5; background: rgba(0,0,0,0.2);">
+                    <label>Tam Ad Soyad</label>
+                    <input type="text" id="profileFullName" required>
+                    <label>E-posta Adresi</label>
+                    <input type="email" id="profileEmail" required>
+                </div>
+                
+                <div style="background: rgba(255,78,80,0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,78,80,0.1);">
+                    <h4 style="font-size: 12px; color: var(--primary); margin-bottom: 10px;">Şifre Değiştir</h4>
+                    <label>Yeni Şifre (Boş bırakılırsa değişmez)</label>
+                    <input type="password" id="profileNewPassword" placeholder="••••••••">
+                    <label>Yeni Şifre Tekrar</label>
+                    <input type="password" id="profileConfirmPassword" placeholder="••••••••">
+                </div>
+                
+                <button type="submit" style="background:var(--primary); color:white; border:none; padding:14px; border-radius:12px; width:100%; cursor:pointer; font-weight:700; margin-top: 20px;">DEĞİŞİKLİKLERİ KAYDET</button>
             </form>
             <button onclick="document.getElementById('profileModal').style.display='none'" style="background:none; border:none; color:var(--text-muted); width:100%; margin-top:10px; cursor:pointer;">Kapat</button>
         </div>
