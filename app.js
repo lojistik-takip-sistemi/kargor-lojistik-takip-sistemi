@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (savedToken) {
         // Eğer token varsa, geçerli olup olmadığını kontrol etmek için profil sayfasına istek atıyoruz
-        fetch('http://127.0.0.1:8000/api/profile/', {
+        fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/profile/', {
             headers: { 'Authorization': 'Bearer ' + savedToken }
         })
         .then(res => {
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (hataBox) hataBox.style.display = 'none';
 
-            fetch('http://127.0.0.1:8000/api/token/', {
+            fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/token/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: user, password: pass })
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 storage.setItem('access_token', data.access);
                 storage.setItem('refresh_token', data.refresh);
                 
-                return fetch('http://127.0.0.1:8000/api/profile/', {
+                return fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/profile/', {
                     headers: { 'Authorization': 'Bearer ' + data.access }
                 });
             })

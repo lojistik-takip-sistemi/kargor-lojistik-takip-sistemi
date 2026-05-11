@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // --- 3. VERİ ÇEKME FONKSİYONLARI ---
     const fetchStats = () => {
-        fetch('http://127.0.0.1:8000/api/dashboard/summary/', { 
+        fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/dashboard/summary/', { 
             headers: { 'Authorization': 'Bearer ' + token }
         })
         .then(res => res.json()).then(data => {
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     const fetchTasks = () => {
-        fetch('http://127.0.0.1:8000/api/tasks/', { 
+        fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/tasks/', { 
             headers: { 'Authorization': 'Bearer ' + token }
         })
         .then(res => res.json()).then(data => {
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     const fetchUsers = () => {
-        fetch('http://127.0.0.1:8000/api/users/', { 
+        fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/users/', { 
             headers: { 'Authorization': 'Bearer ' + token }
         })
         .then(res => res.json()).then(data => {
@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // --- 6. PROFİL VE DİĞER İŞLEMLER ---
     window.openProfileModal = () => {
-        fetch('http://127.0.0.1:8000/api/profile/', { 
+        fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/profile/', { 
             headers: { 'Authorization': 'Bearer ' + token }
         })
         .then(res => res.json()).then(u => {
@@ -200,7 +200,7 @@ document.addEventListener("DOMContentLoaded", function() {
         };
         if (newPass) payload.password = newPass;
 
-        fetch('http://127.0.0.1:8000/api/profile/', {
+        fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/profile/', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
             body: JSON.stringify(payload)
@@ -210,7 +210,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     window.deleteUser = (userId) => {
         if (confirm("Kullanıcıyı silmek istediğinize emin misiniz?")) {
-            fetch(`http://127.0.0.1:8000/api/users/${userId}/`, {
+            fetch(`https://kargor-lojistik-takip-sistemi.onrender.com/api/users/${userId}/`, {
                 method: 'DELETE',
                 headers: { 'Authorization': 'Bearer ' + token }
             }).then(res => { if (res.ok) { alert("Silindi."); fetchUsers(); } });
@@ -219,7 +219,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     window.deleteTask = (id) => {
         if(confirm("Kargoyu silmek istediğinize emin misiniz?")) {
-            fetch(`http://127.0.0.1:8000/api/tasks/${id}/`, { 
+            fetch(`https://kargor-lojistik-takip-sistemi.onrender.com/api/tasks/${id}/`, { 
                 method:'DELETE', 
                 headers:{'Authorization':'Bearer '+token}
             }).then(() => fetchTasks());
@@ -251,7 +251,7 @@ document.addEventListener("DOMContentLoaded", function() {
             status: document.getElementById('updateTaskStatus').value,
             assigned_to: document.getElementById('updateTaskAssignee').value || null
         };
-        fetch(`http://127.0.0.1:8000/api/tasks/${tid}/`, {
+        fetch(`https://kargor-lojistik-takip-sistemi.onrender.com/api/tasks/${tid}/`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
             body: JSON.stringify(payload)
@@ -259,7 +259,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     window.loadPersonnelDropdown = () => {
-        fetch('http://127.0.0.1:8000/api/users/', { headers: { 'Authorization': 'Bearer ' + token }})
+        fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/users/', { headers: { 'Authorization': 'Bearer ' + token }})
         .then(res => res.json()).then(data => {
             const users = data.results || data;
             const options = '<option value="">-- Kurye Seçin --</option>' + 
@@ -300,7 +300,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     const fetchComments = (tid) => {
-        fetch(`http://127.0.0.1:8000/api/comments/?task_id=${tid}`, { headers: { 'Authorization': 'Bearer ' + token }})
+        fetch(`https://kargor-lojistik-takip-sistemi.onrender.com/api/comments/?task_id=${tid}`, { headers: { 'Authorization': 'Bearer ' + token }})
         .then(res => res.json()).then(data => {
             const comments = data.results || data;
             document.getElementById('comment-list').innerHTML = comments.map(c => `<div style="background:rgba(255,255,255,0.02); padding:8px; border-radius:8px; margin-bottom:5px; font-size:12px;"><strong>${escapeHTML(c.user_name)}:</strong> ${escapeHTML(c.content)}</div>`).join('');

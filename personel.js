@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // --- BAŞLATMA FONKSİYONU ---
     function init() {
         // Önce kurye profilini alalım
-        fetch('http://127.0.0.1:8000/api/profile/', {
+        fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/profile/', {
             headers: { 'Authorization': 'Bearer ' + token }
         })
         .then(res => {
@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // --- GÖREVLERİ ÇEKME ---
     function fetchTasks() {
-        fetch('http://127.0.0.1:8000/api/tasks/', {
+        fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/tasks/', {
             headers: { 'Authorization': 'Bearer ' + token }
         })
         .then(res => res.json())
@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // --- DURUM GÜNCELLEME (GLOBAL) ---
     window.updateStatus = (taskId, newStatus) => {
-        fetch(`http://127.0.0.1:8000/api/tasks/${taskId}/`, {
+        fetch(`https://kargor-lojistik-takip-sistemi.onrender.com/api/tasks/${taskId}/`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -179,7 +179,7 @@ document.addEventListener("DOMContentLoaded", function() {
         };
         if (newPass) payload.password = newPass;
 
-        fetch('http://127.0.0.1:8000/api/profile/', {
+        fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/profile/', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
             body: JSON.stringify(payload)

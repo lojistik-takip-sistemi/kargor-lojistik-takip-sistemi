@@ -2,9 +2,11 @@ services:
   - type: web
     name: kargor-lojistik
     runtime: python
-    buildCommand: "./build.sh"
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate"
     startCommand: "gunicorn cargo_project.wsgi:application --bind 0.0.0.0:$PORT"
     envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: cargo_project.settings
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
@@ -18,10 +20,10 @@ services:
       - key: DB_PORT
         value: "5432"
       - key: DB_PASSWORD
-        sync: false   # Render panelinden gizli olarak girilecek
+        sync: false
       - key: EMAIL_HOST_USER
         value: muparlak5353@gmail.com
       - key: EMAIL_HOST_PASSWORD
-        sync: false   # Render panelinden gizli olarak girilecek
+        sync: false
       - key: PYTHON_VERSION
         value: "3.12.0"

@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // --- PROFİL VERİLERİNİ BAŞLAT ---
     const fetchProfile = () => {
-        fetch('http://127.0.0.1:8000/api/profile/', {
+        fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/profile/', {
             headers: { 'Authorization': 'Bearer ' + token }
         })
         .then(res => res.json())
@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // --- KARGOLARI LİSTELE ---
     function fetchMyShipments() {
-        fetch('http://127.0.0.1:8000/api/tasks/', {
+        fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/tasks/', {
             headers: { 'Authorization': 'Bearer ' + token }
         })
         .then(res => res.json())
@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // --- KRİTİK: İPTAL ETME (SİLME) FONKSİYONU ---
     window.cancelShipment = (taskId) => {
         if (confirm("Bu kargo talebinizi kalıcı olarak iptal etmek istediğinize emin misiniz?")) {
-            fetch(`http://127.0.0.1:8000/api/tasks/${taskId}/`, {
+            fetch(`https://kargor-lojistik-takip-sistemi.onrender.com/api/tasks/${taskId}/`, {
                 method: 'DELETE',
                 headers: { 'Authorization': 'Bearer ' + token }
             })
@@ -136,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function() {
             description: document.getElementById('shipmentDesc').value,
             status: "Onay_Bekliyor"
         };
-        fetch('http://127.0.0.1:8000/api/tasks/', {
+        fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/tasks/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
             body: JSON.stringify(payload)
@@ -167,7 +167,7 @@ document.addEventListener("DOMContentLoaded", function() {
         };
         if (newPass) updateData.password = newPass;
 
-        fetch('http://127.0.0.1:8000/api/profile/', {
+        fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/profile/', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
             body: JSON.stringify(updateData)
@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // --- SİSTEM VE YARDIMCI FONKSİYONLAR ---
     const fetchNotifications = () => {
-        fetch('http://127.0.0.1:8000/api/notifications/', { headers: { 'Authorization': 'Bearer ' + token }})
+        fetch('https://kargor-lojistik-takip-sistemi.onrender.com/api/notifications/', { headers: { 'Authorization': 'Bearer ' + token }})
         .then(res => res.json()).then(data => {
             const list = document.getElementById('userNotifList');
             const notifs = data.results || data;

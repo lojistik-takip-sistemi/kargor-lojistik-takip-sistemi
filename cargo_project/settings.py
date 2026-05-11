@@ -94,7 +94,17 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Django 4.2+ ile gelen yeni STORAGES yapısı (STATICFILES_STORAGE kaldırıldı)
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # --- REST FRAMEWORK: JWT GÜVENLİĞİ, FİLTRELEME VE BRUTE FORCE KORUMASI ---
@@ -128,14 +138,14 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# --- CORS AYARLARI (GÜVENLİK İÇİN SIKILAŞTIRILDI) ---
+# --- CORS AYARLARI ---
 CORS_ALLOWED_ORIGINS = [
+    "https://kargor-lojistik-takip-sistemi.onrender.com",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
     "http://127.0.0.1:5500",
     "null",  # Frontend dosyaları yerel dizinden çift tıklayarak açılıyorsa buna ihtiyaç vardır
 ]
-CORS_ALLOW_ALL_ORIGINS = True  # Render deploy sonrası frontend URL'ini ekleyince bunu kaldır
 
 CORS_ALLOW_METHODS = [
     "DELETE",
