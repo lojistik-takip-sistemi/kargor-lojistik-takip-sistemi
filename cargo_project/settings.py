@@ -96,13 +96,13 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [BASE_DIR / 'static']  # Geliştirme ortamı için statik dosya klasörü
 
-# Django 4.2+ ile gelen yeni STORAGES yapısı (STATICFILES_STORAGE kaldırıldı)
+# Django 4.2+ ile gelen yeni STORAGES yapısı
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
