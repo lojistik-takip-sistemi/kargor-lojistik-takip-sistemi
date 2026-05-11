@@ -102,8 +102,9 @@ def create_task_notification(sender, instance, created, **kwargs):
     if created and instance.assigned_to:
         Notification.objects.create(
             user=instance.assigned_to,
-            message=f"Yeni bir görev size atandı: {instance.title}",
-            notification_type="GOREV"
+            title="Yeni Görev Ataması",  # Eksik olan title eklendi
+            message=f"Yeni bir görev size atandı: {instance.title}"
+            # Hata veren notification_type satırı kaldırıldı
         )
 
 @receiver(post_save, sender=Comment)
@@ -114,6 +115,7 @@ def create_comment_notification(sender, instance, created, **kwargs):
         if task.assigned_to and task.assigned_to != instance.user:
             Notification.objects.create(
                 user=task.assigned_to,
-                message=f"'{task.title}' görevine yeni bir yorum yapıldı.",
-                notification_type="YORUM"
+                title="Yeni Yorum",  # Eksik olan title eklendi
+                message=f"'{task.title}' görevine yeni bir yorum yapıldı."
+                # Hata veren notification_type satırı kaldırıldı
             )

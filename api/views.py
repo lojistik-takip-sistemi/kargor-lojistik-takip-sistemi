@@ -107,3 +107,8 @@ class SystemLogsView(APIView):
             {"action": "Görev dağılım algoritmaları aktif.", "time": "Bugün"}
         ]
         return Response(logs)
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = [permissions.AllowAny] # Herkesin kayıt olabilmesine izin verir
+    serializer_class = UserCreateSerializer

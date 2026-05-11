@@ -174,3 +174,14 @@ AUTHENTICATION_BACKENDS = [
     'api.backends.EmailOrUsernameModelBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+# --- E-POSTA GÖNDERİM AYARLARI ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+# Kendi Gmail adresini ve Google'dan alacağın 16 haneli "Uygulama Şifresi"ni buraya yazmalısın.
+# DİKKAT: Buraya normal Gmail şifreni DEĞİL, uygulama şifreni yazmalısın.
+EMAIL_HOST_USER = 'muparlak5353@gmail.com' 
+EMAIL_HOST_PASSWORD = 'kelmghpducapyjtm'

@@ -2,6 +2,8 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.hashers import make_password
 from .models import User, Project, Task, Comment, Notification, ActionLog
+from django.core.mail import send_mail
+from django.conf import settings
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -68,5 +70,31 @@ class UserCreateSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'password', 'full_name', 'email', 'role']
 
     def create(self, validated_data):
+        # Şifreyi şifreleyerek kaydet
         validated_data['password'] = make_password(validated_data['password'])
-        return super().create(validated_data)
+        user = super().create(validated_data)
+        
+        # Başarılı kayıt sonrası arka planda E-posta gönderimi
+        try:
+            subject = 'Kargor Lojistik Sistemine Hoş Geldiniz!'
+            message = f"""Merhaba {user.full_name},
+
+Kargor Görev ve Yönetim Platformuna kaydınız başarıyla tamamlanmıştır.
+
+Giriş Bilgileriniz:
+E-posta: {user.email}
+Rolünüz: {user.role}
+
+Sisteme giriş yaparak size atanan görevleri takip edebilirsiniz.
+İyi çalışmalar dileriz."""
+            
+            email_from = settings.EMAIL_HOST_USER
+            recipient_list = [user.email]
+            
+            # fail_silently=True yapıyoruz ki, mail sunucusunda anlık bir hata olursa kullanıcının kayıt işlemi iptal olmasın.
+            send_mail(subject, message, email_from, recipient_list, fail_silently=True)
+            
+        except Exception as e:
+            print(f"E-posta gönderiminde hata oluştu: {e}")
+
+        return user

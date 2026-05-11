@@ -13,13 +13,15 @@ from .views import (
     NotificationListView,
     CommentListView,
     UserManagementView,
-    SystemLogsView
+    SystemLogsView,
+    RegisterView
 )
 
 urlpatterns = [
-    # Kimlik Doğrulama (Auth)
+    # Kimlik Doğrulama ve Kayıt
     path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('register/', RegisterView.as_view(), name='register'), # EKLENEN SATIR
 
     # Görevler ve Projeler
     path('tasks/', TaskListView.as_view(), name='task-list'),
