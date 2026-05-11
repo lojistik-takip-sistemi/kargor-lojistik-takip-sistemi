@@ -78,7 +78,7 @@ from django.contrib.auth.hashers import make_password
 class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'password', 'full_name', 'email', 'role']
+        fields = ['id', 'username', 'password', 'full_name', 'email', 'role']
 
     def create(self, validated_data):
         # Şifreyi güvenli hale getiriyoruz

@@ -221,6 +221,7 @@ const fetchDashboardStats = () => {
     };
 
     // Görevleri ekrana bas
+    // Görevleri ekrana bas
     const renderList = (data) => {
         const container = document.getElementById('task-list');
         
@@ -235,7 +236,7 @@ const fetchDashboardStats = () => {
             <div class="item-row">
                 <div>
                     <strong>[${escapeHTML(t.task_code)}] ${escapeHTML(t.title)}</strong><br>
-                    <small>Proje: ${escapeHTML(t.project_name)} | Atanan: ${escapeHTML(t.assigned_to_name) || 'Atanmadı'}</small>
+                    <small>Proje: ${escapeHTML(t.project_name)} | Atanan: ${escapeHTML(t.assignee_name) || 'Atanmadı'}</small>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <div class="status ${t.status === 'Tamamlandi' ? 'delivered' : 'in-transit'}">
@@ -253,7 +254,6 @@ const fetchDashboardStats = () => {
             </div>
         `).join('');
     };
-
     // --- ARAMA ---
     document.getElementById('searchInput').addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase();
@@ -581,28 +581,23 @@ function loadPersonnelDropdown() {
     .then(res => res.json())
     .then(data => {
         const select = document.getElementById('taskAssignee');
-        if (!select) return;
-
-        // Backend'den gelen ham veriyi konsola basalım
-        console.log("Backend'den gelen ham veri:", data);
-
         let usersArray = Array.isArray(data) ? data : (data.results || []);
-        
-        // DİKKAT: Filtrelemeyi şimdilik devre dışı bırakıyoruz ki isimler geri gelsin
-        // Sadece gelen veride ne yazdığını göreceğiz
+
         let optionsHTML = '<option value="">-- Personel Seçin --</option>';
         
         usersArray.forEach(u => {
-            const realId = u.id || u.pk;
-            // Konsola her kullanıcının rolünü yazdıralım ki hatayı görelim
-            console.log(`Kullanıcı: ${u.username}, Rolü ne yazıyor: "${u.role}"`);
-
-            optionsHTML += `<option value="${realId}">${u.full_name || u.username} (${u.role || 'Rol Yok'})</option>`;
+            // ÖNEMLİ: u.id mi yoksa u.pk mi geliyor? 
+            // Konsola bakarak emin olabilirsin ama genelde id gelir.
+            const userId = u.id || u.pk; 
+            
+            if (userId) {
+                // value="${userId}" kısmının tırnak içinde ve dolu olduğundan emin oluyoruz
+                optionsHTML += `<option value="${userId}">${u.full_name || u.username}</option>`;
+            }
         });
         
         select.innerHTML = optionsHTML;
-    })
-    .catch(err => console.error("Liste çekme hatası:", err));
+    });
 }
 
 // Sayfa yüklendiğinde bu dropdown da dolsun
