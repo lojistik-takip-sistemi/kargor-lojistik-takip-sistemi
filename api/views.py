@@ -26,6 +26,25 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = UserSerializer
 
+# YENİ EKLENEN: E-posta göndermeden direkt şifre güncelleyen görünüm
+class DirectPasswordResetView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        new_password = request.data.get('new_password')
+
+        if not email or not new_password:
+            return Response({"error": "E-posta ve yeni şifre gereklidir."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+            user.set_password(new_password)
+            user.save()
+            return Response({"message": "Şifreniz başarıyla güncellendi. Şimdi yeni şifrenizle giriş yapabilirsiniz."}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "Bu e-posta adresine ait bir kullanıcı bulunamadı."}, status=status.HTTP_404_NOT_FOUND)
+
 class ProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]

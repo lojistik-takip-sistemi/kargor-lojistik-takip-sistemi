@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById('courierDetailModal').style.display = 'flex';
     };
 
-    // Müşteri Geçmişi (TIKLANAMAMA SORUNU BURADA DÜZELTİLDİ)
+    // Müşteri Geçmişi 
     window.openCustomerDetailModal = (customerId, customerName) => {
         document.getElementById('detailCustomerName').innerText = customerName;
         const historyContainer = document.getElementById('customer-task-history');
@@ -160,7 +160,7 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById('customerDetailModal').style.display = 'flex';
     };
 
-    // --- 6. PROFİL VE GÜVENLİK AYARLARI (TIKLANAMAMA SORUNU DÜZELTİLDİ) ---
+    // --- 6. PROFİL VE GÜVENLİK AYARLARI ---
     window.openProfileModal = () => {
         fetch('http://127.0.0.1:8000/api/profile/', { 
             headers: { 'Authorization': 'Bearer ' + token }
@@ -326,8 +326,14 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     };
 
+    // --- YENİ EKLENEN: GÜVENLİ ÇIKIŞ İŞLEMİ ---
     document.getElementById('logoutBtn').onclick = () => { 
-        localStorage.clear(); 
+        // Hem beni hatırla verisini hem de anlık sekmeyi tamamen temizle
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        sessionStorage.removeItem('access_token');
+        sessionStorage.removeItem('refresh_token');
+        
         window.location.href="index.html"; 
     };
 

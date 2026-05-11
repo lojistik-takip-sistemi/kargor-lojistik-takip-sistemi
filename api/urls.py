@@ -15,7 +15,8 @@ from .views import (
     UserManagementView,
     SystemLogsView,
     RegisterView,
-    UserDetailView  # Kurye/Müşteri silme işlemi için yeni eklenen view
+    UserDetailView,  # Kurye/Müşteri silme işlemi için yeni eklenen view
+    DirectPasswordResetView # YENİ EKLENEN VİEW
 )
 
 urlpatterns = [
@@ -23,6 +24,7 @@ urlpatterns = [
     path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('register/', RegisterView.as_view(), name='register'),
+    path('direct-password-reset/', DirectPasswordResetView.as_view(), name='direct-password-reset'), # YENİ EKLENEN YOL
 
     # Görevler ve Projeler
     path('tasks/', TaskListView.as_view(), name='task-list'),

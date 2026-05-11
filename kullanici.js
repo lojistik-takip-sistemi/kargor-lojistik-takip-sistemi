@@ -196,7 +196,16 @@ document.addEventListener("DOMContentLoaded", function() {
         renderShipments(myTasks.filter(t => t.title.toLowerCase().includes(term) || (t.task_code && t.task_code.toLowerCase().includes(term))));
     };
 
-    window.logout = () => { localStorage.clear(); window.location.href = "index.html"; };
+    // --- YENİ EKLENEN: GÜVENLİ ÇIKIŞ İŞLEMİ ---
+    window.logout = () => { 
+        // Hem beni hatırla verisini hem de anlık sekmeyi tamamen temizle
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        sessionStorage.removeItem('access_token');
+        sessionStorage.removeItem('refresh_token');
+        
+        window.location.href = "index.html"; 
+    };
 
     function escapeHTML(s) { return s ? s.toString().replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":"&#39;",'"':'&quot;'}[c])) : ''; }
 
