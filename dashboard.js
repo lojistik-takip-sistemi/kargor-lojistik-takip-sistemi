@@ -15,12 +15,11 @@ document.addEventListener("DOMContentLoaded", function() {
         element.classList.add('active');
         document.getElementById('panel-title').innerText = element.innerText;
 
-        // Panele göre veriyi yenile
         if (panelId === 'kurye-panel' || panelId === 'musteri-panel') fetchUsers();
         if (panelId === 'kargo-panel') { fetchTasks(); fetchStats(); }
     };
 
-    // --- VERİ ÇEKME FONKSİYONLARI ---
+    // --- VERİ ÇEKME ---
     const fetchStats = () => {
         fetch('http://127.0.0.1:8000/api/dashboard/summary/', { headers: { 'Authorization': 'Bearer ' + token }})
         .then(res => res.json()).then(data => {
@@ -63,48 +62,52 @@ document.addEventListener("DOMContentLoaded", function() {
         const kuryeler = users.filter(u => u.role === 'Personel');
         const musteriler = users.filter(u => u.role === 'Kullanici');
 
-        // Kurye listesinde Detay butonu openCourierDetailModal'ı çağırır
+        // KURYE LİSTESİ (SİLME BUTONU EKLENDİ)
         document.getElementById('courier-list').innerHTML = kuryeler.map(u => `
             <div class="item-row">
-                <div><strong>${escapeHTML(u.full_name)}</strong><br><small>${u.email} | ${u.phone || 'Tel yok'}</small></div>
-                <button onclick="openCourierDetailModal(${u.id}, '${escapeHTML(u.full_name)}')" class="badge" style="background:var(--primary);">GEÇMİŞ İŞLER</button>
+                <div><strong>${escapeHTML(u.full_name)}</strong><br><small>${u.email}</small></div>
+                <div style="display:flex; gap:5px;">
+                    <button onclick="openCourierDetailModal(${u.id}, '${escapeHTML(u.full_name)}')" class="badge" style="background:var(--primary);">GEÇMİŞ İŞLER</button>
+                    <button onclick="deleteUser(${u.id})" class="badge" style="background:var(--danger);">KURYEYİ SİL</button>
+                </div>
             </div>`).join('');
             
-        document.getElementById('customer-list').innerHTML = musteriler.map(u => `<div class="item-row"><div><strong>${escapeHTML(u.full_name)}</strong><br><small>${u.email}</small></div><button class="badge" style="background:#64748b;">Görüntüle</button></div>`).join('');
+        document.getElementById('customer-list').innerHTML = musteriler.map(u => `
+            <div class="item-row">
+                <div><strong>${escapeHTML(u.full_name)}</strong><br><small>${u.email}</small></div>
+                <button onclick="deleteUser(${u.id})" class="badge" style="background:var(--danger);">MÜŞTERİYİ SİL</button>
+            </div>`).join('');
     };
 
-    const renderPerformance = (perf) => {
-        const perfList = document.getElementById('performance-list');
-        perfList.innerHTML = (perf && perf.length > 0) ? 
-            perf.map((p, i) => `<div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.02); border-radius:10px; margin-bottom:5px; border:1px solid rgba(255,255,255,0.05);"><span>#${i+1} ${escapeHTML(p.username)}</span><span style="color:var(--success);">${p.completed_count} Teslimat</span></div>`).join('') :
-            "<p style='color:var(--text-muted); font-size:12px;'>Veri yok.</p>";
+    // --- KULLANICI SİLME FONKSİYONU ---
+    window.deleteUser = (userId) => {
+        if (confirm("Bu kullanıcıyı sistemden tamamen silmek istediğinize emin misiniz?")) {
+            fetch(`http://127.0.0.1:8000/api/users/${userId}/`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(res => {
+                if (res.ok) {
+                    alert("Kullanıcı başarıyla silindi.");
+                    fetchUsers(); // Listeyi yenile
+                } else {
+                    alert("Silme işlemi başarısız.");
+                }
+            });
+        }
     };
 
-    // --- KURYE GEÇMİŞİ MODALI (YENİ) ---
+    // --- KURYE GEÇMİŞİ ---
     window.openCourierDetailModal = (courierId, courierName) => {
         document.getElementById('detailCourierName').innerText = courierName;
-        const historyContainer = document.getElementById('courier-task-history');
-        
-        // allTasks içinden bu kuryeye atanmış ve TAMAMLANMIŞ olanları filtrele
         const history = allTasks.filter(t => t.assigned_to === courierId && t.status === 'Tamamlandi');
-
-        if (history.length === 0) {
-            historyContainer.innerHTML = "<p style='color:var(--text-muted); text-align:center; padding:20px;'>Bu kuryeye ait tamamlanmış iş bulunamadı.</p>";
-        } else {
-            historyContainer.innerHTML = history.map(t => `
-                <div style="background:rgba(255,255,255,0.02); padding:15px; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                        <strong>${escapeHTML(t.title)}</strong>
-                        <span style="color:var(--success); font-size:11px;">${t.task_code}</span>
-                    </div>
-                    <small style="color:var(--text-muted);">${escapeHTML(t.origin)} ➔ ${escapeHTML(t.destination)}</small>
-                </div>
-            `).join('');
-        }
+        document.getElementById('courier-task-history').innerHTML = history.length === 0 ? 
+            "<p style='color:var(--text-muted); text-align:center;'>Geçmiş iş bulunamadı.</p>" :
+            history.map(t => `<div style="background:rgba(255,255,255,0.02); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);"><strong>${t.title}</strong><br><small>${t.origin} ➔ ${t.destination}</small></div>`).join('');
         document.getElementById('courierDetailModal').style.display = 'flex';
     };
 
-    // --- DİĞER YARDIMCI FONKSİYONLAR ---
+    // --- DİĞER İŞLEMLER ---
     window.deleteTask = (id) => { if(confirm("Kargoyu silmek istediğinize emin misiniz?")) fetch(`http://127.0.0.1:8000/api/tasks/${id}/`, { method:'DELETE', headers:{'Authorization':'Bearer '+token}}).then(() => fetchTasks()); };
     
     window.openUpdateModal = (taskId) => {
@@ -138,9 +141,27 @@ document.addEventListener("DOMContentLoaded", function() {
         myChart = new Chart(ctx, { type:'doughnut', data:{ labels:['Yapılacak','Yolda','Bitti'], datasets:[{ data:[data.todo_tasks, data.ongoing_tasks, data.completed_tasks], backgroundColor:['#ff4e50','#facc15','#4ade80'], borderWidth:0 }]}, options:{ cutout:'75%', plugins:{ legend:{ display:false }}}});
     };
 
+    const renderPerformance = (perf) => {
+        const perfList = document.getElementById('performance-list');
+        perfList.innerHTML = (perf && perf.length > 0) ? 
+            perf.map((p, i) => `<div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.02); border-radius:10px; margin-bottom:5px;"><span>#${i+1} ${p.username}</span><span style="color:var(--success);">${p.completed_count} Teslimat</span></div>`).join('') : "";
+    };
+
     const escapeHTML = (s) => s ? s.toString().replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":"&#39;",'"':'&quot;'}[c])) : '';
     document.getElementById('logoutBtn').onclick = () => { localStorage.clear(); window.location.href="index.html"; };
     
-    // Başlangıç yüklemesi
+    // Sayfa ilk açıldığında
     fetchStats(); fetchTasks();
 });
+
+// Profil Ayarları Açma
+function openProfileModal() {
+    const token = localStorage.getItem('access_token');
+    fetch('http://127.0.0.1:8000/api/profile/', { headers: { 'Authorization': 'Bearer ' + token }})
+    .then(res => res.json()).then(u => {
+        document.getElementById('profileUsername').value = u.username;
+        document.getElementById('profileFullName').value = u.full_name;
+        document.getElementById('profileEmail').value = u.email;
+        document.getElementById('profileModal').style.display = 'flex';
+    });
+}

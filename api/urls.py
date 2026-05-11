@@ -14,14 +14,15 @@ from .views import (
     CommentListView,
     UserManagementView,
     SystemLogsView,
-    RegisterView
+    RegisterView,
+    UserDetailView  # Kurye/Müşteri silme işlemi için yeni eklenen view
 )
 
 urlpatterns = [
     # Kimlik Doğrulama ve Kayıt
     path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('register/', RegisterView.as_view(), name='register'), # EKLENEN SATIR
+    path('register/', RegisterView.as_view(), name='register'),
 
     # Görevler ve Projeler
     path('tasks/', TaskListView.as_view(), name='task-list'),
@@ -33,6 +34,11 @@ urlpatterns = [
     path('dashboard/summary/', DashboardSummaryView.as_view(), name='dashboard-summary'),
     path('profile/', ProfileView.as_view(), name='profile'),
     path('notifications/', NotificationListView.as_view(), name='notifications'),
+    
+    # Kullanıcı Yönetimi
     path('users/', UserManagementView.as_view(), name='user-management'),
+    path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail'), # Kurye/Müşteri silme/detay yolu
+    
+    # Sistem Kayıtları
     path('logs/', SystemLogsView.as_view(), name='system-logs'),
 ]

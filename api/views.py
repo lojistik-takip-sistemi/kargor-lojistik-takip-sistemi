@@ -1,143 +1,138 @@
 from django.shortcuts import render
-from rest_framework import generics, permissions
-from rest_framework.views import APIView
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
-from django.db.models import Count, Q
-from django.contrib.auth import get_user_model
+from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.db.models import Count, Q
 
-from .models import Project, Task, Notification, Comment, ActionLog
+from .models import User, Task, Project, Notification, Comment, ActionLog
 from .serializers import (
+    UserSerializer, 
     TaskSerializer, 
-    UserProfileSerializer, 
-    UserCreateSerializer,
+    ProjectSerializer, 
+    NotificationSerializer, 
+    CommentSerializer, 
+    ActionLogSerializer,
     MyTokenObtainPairSerializer
 )
 
-User = get_user_model()
+# --- KİMLİK DOĞRULAMA ---
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = UserSerializer
+
+class ProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+# --- GÖREV / KARGO YÖNETİMİ ---
+
 class TaskListView(generics.ListCreateAPIView):
     serializer_class = TaskSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        
-        # Giriş yapılmamışsa hiçbir şey döndürme
-        if user.is_anonymous:
-            return Task.objects.none()
-
-        # 1. YÖNETİCİ: Rolü 'Yonetici' olanlar VEYA Django'nun staff/superuser yetkisi olanlar
-        # Bu sayede createsuperuser ile açtığın hesaplarda role 'Kullanici' olsa bile verileri görürsün.
         if user.role == 'Yonetici' or user.is_staff or user.is_superuser:
             return Task.objects.all().order_by('-created_at')
-
-        # 2. KULLANICI: Sadece kendi paketlerini görür
         elif user.role == 'Kullanici':
             return Task.objects.filter(customer=user).order_by('-created_at')
-
-        # 3. PERSONEL: Sadece kendine atanan ve onaylananları görür
         elif user.role == 'Personel':
             return Task.objects.filter(assigned_to=user).exclude(status='Onay_Bekliyor').order_by('-created_at')
-
         return Task.objects.none()
 
     def perform_create(self, serializer):
         user = self.request.user
-        # Müşteri kargo oluşturuyorsa customer olarak onu ata
         if user.role == 'Kullanici':
             serializer.save(customer=user, status='Onay_Bekliyor')
         else:
             serializer.save()
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Task.objects.filter(is_active=True)
+    queryset = Task.objects.all()
     serializer_class = TaskSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+# --- KULLANICI / KURYE / MÜŞTERİ YÖNETİMİ ---
+
+class UserManagementView(generics.ListAPIView):
+    """Sistemdeki tüm kullanıcıları (Personel, Yönetici, Kullanıcı) listeler"""
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Kurye veya Müşteri silme/güncelleme işlemini yapan sınıftır.
+    Hata aldığın eksik kısım burasıydı.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+# --- SOSYAL VE SİSTEM ÖZELLİKLERİ ---
+
+class CommentListView(generics.ListCreateAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        task_id = self.request.query_params.get('task_id')
+        if task_id:
+            return Comment.objects.filter(task_id=task_id).order_by('-created_at')
+        return Comment.objects.all().order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class NotificationListView(generics.ListAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user).order_by('-created_at')
+
+class SystemLogsView(generics.ListAPIView):
+    queryset = ActionLog.objects.all().order_by('-created_at')
+    serializer_class = ActionLogSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+# --- DASHBOARD VE İSTATİSTİKLER ---
 
 class DashboardSummaryView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def get(self, request):
-        try:
-            total_projects = Project.objects.count()
-            total_tasks = Task.objects.filter(is_active=True).count()
-            
-            status_counts = Task.objects.filter(is_active=True).values('status').annotate(total=Count('status'))
-            stats = {item['status']: item['total'] for item in status_counts}
+        # Genel Sayılar
+        total_projects = Project.objects.count()
+        total_tasks = Task.objects.count()
+        completed_tasks = Task.objects.filter(status='Tamamlandi').count()
+        todo_tasks = Task.objects.filter(status='Yapilacak').count()
+        ongoing_tasks = Task.objects.filter(status='Devam_Ediyor').count()
 
-            all_users = User.objects.all()
-            performance_list = []
-            
-            for u in all_users:
-                c_count = Task.objects.filter(assigned_to=u, status='Tamamlandi', is_active=True).count()
-                t_count = Task.objects.filter(assigned_to=u, is_active=True).count()
-                
-                performance_list.append({
-                    "username": u.username,
-                    "completed_count": c_count,
-                    "total_assigned": t_count
-                })
+        # Performans (En çok teslimat yapan personeller)
+        performance = User.objects.filter(role='Personel').annotate(
+            completed_count=Count('assigned_tasks', filter=Q(assigned_tasks__status='Tamamlandi'))
+        ).order_by('-completed_count')[:5]
 
-            performance_list = sorted(performance_list, key=lambda x: x['completed_count'], reverse=True)[:5]
-
-            return Response({
-                "total_projects": total_projects,
-                "total_tasks": total_tasks,
-                "completed_tasks": stats.get('Tamamlandi', 0),
-                "ongoing_tasks": stats.get('Devam_Ediyor', 0),
-                "todo_tasks": stats.get('Yapilacak', 0),
-                "performance": performance_list
-            })
-        except Exception as e:
-            return Response({"error": str(e)}, status=500)
-
-class ProfileView(APIView):
-    def get(self, request):
-        serializer = UserProfileSerializer(request.user)
-        return Response(serializer.data)
-
-    def put(self, request):
-        serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
-
-class NotificationListView(APIView):
-    def get(self, request):
-        notifs = Notification.objects.filter(user=request.user).order_by('-created_at')[:10]
-        data = [{
-            "id": n.id,
-            "message": n.message, 
-            "is_read": n.is_read, 
-            "created_at": n.created_at
-        } for n in notifs]
-        return Response(data)
-
-class CommentListView(APIView):
-    def get(self, request, task_id):
-        comments = Comment.objects.filter(task_id=task_id).order_by('-created_at')
-        data = [{
-            "user": c.user.username, 
-            "text": getattr(c, 'content', ''), 
-            "created_at": c.created_at
-        } for c in comments]
-        return Response(data)
-    
-class UserManagementView(generics.ListCreateAPIView):
-    queryset = User.objects.all().order_by('username')
-    serializer_class = UserCreateSerializer
-
-class SystemLogsView(APIView):
-    def get(self, request):
-        logs = [
-            {"action": "Sistem başarıyla başlatıldı.", "time": "Az önce"},
-            {"action": "Yeni personel kayıtları güncellendi.", "time": "1 saat önce"},
-            {"action": "Görev dağılım algoritmaları aktif.", "time": "Bugün"}
+        performance_data = [
+            {"username": p.username, "completed_count": p.completed_count} 
+            for p in performance
         ]
-        return Response(logs)
 
-class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    permission_classes = [permissions.AllowAny] # Herkesin kayıt olabilmesine izin verir
-    serializer_class = UserCreateSerializer
+        return Response({
+            "total_projects": total_projects,
+            "total_tasks": total_tasks,
+            "completed_tasks": completed_tasks,
+            "todo_tasks": todo_tasks,
+            "ongoing_tasks": ongoing_tasks,
+            "performance": performance_data
+        })

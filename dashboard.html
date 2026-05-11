@@ -136,8 +136,7 @@
         <div class="modal-content" style="width: 600px;">
             <h3 id="detailCourierName" style="color:var(--primary); margin-bottom:10px;">Kurye İsmi</h3>
             <p style="color:var(--text-muted); font-size:13px; margin-bottom:20px;">Tamamlanan İş Geçmişi</p>
-            <div id="courier-task-history" style="display:flex; flex-direction:column; gap:10px;">
-                </div>
+            <div id="courier-task-history" style="display:flex; flex-direction:column; gap:10px;"></div>
             <button onclick="document.getElementById('courierDetailModal').style.display='none'" style="width:100%; margin-top:20px; padding:12px; border-radius:12px; border:none; cursor:pointer; background:rgba(255,255,255,0.05); color:white;">Kapat</button>
         </div>
     </div>
@@ -167,6 +166,19 @@
     <div id="logModal" class="modal"><div class="modal-content" style="width: 600px;"><h3>İşlem Geçmişi</h3><div id="log-list" style="max-height:400px; overflow-y:auto;"></div><button onclick="document.getElementById('logModal').style.display='none'" style="width:100%; margin-top:15px; padding:10px; border-radius:10px; border:none; cursor:pointer;">Kapat</button></div></div>
     <div id="commentModal" class="modal"><div class="modal-content"><h3 id="modalTaskTitle"></h3><div id="comment-list" style="margin-bottom:15px;"></div><form id="addCommentForm"><input type="hidden" id="commentTaskId"><textarea id="commentContent" placeholder="Yorumunuz..."></textarea><button type="submit" style="background:var(--success); color:#064e3b; border:none; padding:10px; border-radius:10px; width:100%; cursor:pointer;">Yorum Yap</button></form><button onclick="document.getElementById('commentModal').style.display='none'" style="background:none; border:none; color:var(--text-muted); width:100%; margin-top:10px; cursor:pointer;">Kapat</button></div></div>
     <div id="userModal" class="modal"><div class="modal-content"><h3>Kullanıcı/Kurye Ekle</h3><form id="userAddForm"><input type="text" id="addUsername" placeholder="Kullanıcı Adı" required><input type="password" id="addPassword" placeholder="Şifre" required><input type="text" id="addFullName" placeholder="Ad Soyad" required><input type="email" id="addEmail" placeholder="E-posta" required><select id="addRole"><option value="Personel">Personel</option><option value="Yonetici">Yönetici</option><option value="Kullanici">Müşteri</option></select><button type="submit" style="background:var(--primary); color:white; border:none; padding:15px; border-radius:12px; width:100%; cursor:pointer;">Kaydet</button></form><button onclick="document.getElementById('userModal').style.display='none'" style="background:none; border:none; color:var(--text-muted); width:100%; margin-top:10px; cursor:pointer;">Kapat</button></div></div>
+    
+    <div id="profileModal" class="modal">
+        <div class="modal-content" style="width: 400px;">
+            <h3>Profil Ayarları</h3>
+            <form id="profileForm">
+                <label>Kullanıcı Adı</label><input type="text" id="profileUsername" disabled>
+                <label>Ad Soyad</label><input type="text" id="profileFullName" required>
+                <label>E-posta</label><input type="email" id="profileEmail" required>
+                <button type="submit" style="background:var(--primary); color:white; border:none; padding:12px; border-radius:12px; width:100%; cursor:pointer;">Kaydet</button>
+            </form>
+            <button onclick="document.getElementById('profileModal').style.display='none'" style="background:none; border:none; color:var(--text-muted); width:100%; margin-top:10px; cursor:pointer;">Kapat</button>
+        </div>
+    </div>
 
     <script src="dashboard.js"></script>
 </body>
