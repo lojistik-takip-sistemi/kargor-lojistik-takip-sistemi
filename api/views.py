@@ -60,13 +60,21 @@ class TaskListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
+        queryset = Task.objects.none()
+
         if user.role == 'Yonetici' or user.is_staff or user.is_superuser:
-            return Task.objects.all().order_by('-created_at')
+            queryset = Task.objects.all().order_by('-created_at')
         elif user.role == 'Kullanici':
-            return Task.objects.filter(customer=user).order_by('-created_at')
+            queryset = Task.objects.filter(customer=user).order_by('-created_at')
         elif user.role == 'Personel':
-            return Task.objects.filter(assigned_to=user).exclude(status='Onay_Bekliyor').order_by('-created_at')
-        return Task.objects.none()
+            queryset = Task.objects.filter(assigned_to=user).exclude(status='Onay_Bekliyor').order_by('-created_at')
+        
+        # Eğer query params'da 'status' varsa ona göre filtrele
+        status_param = self.request.query_params.get('status', None)
+        if status_param is not None:
+            queryset = queryset.filter(status=status_param)
+
+        return queryset
 
     def perform_create(self, serializer):
         user = self.request.user
