@@ -24,7 +24,8 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg-dark); color: var(--text-main); display: flex; min-height: 100vh; overflow: hidden; }
+        /* KRİTİK DÜZELTME: min-height yerine height kullanıldı */
+        body { background: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
         /* Sidebar Yapısı (Admin ile Tutarlı) */
         .sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; padding: 30px 20px; border-right: 1px solid var(--border-color); }
