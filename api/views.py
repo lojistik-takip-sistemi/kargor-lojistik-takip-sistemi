@@ -62,7 +62,7 @@ class TaskListView(generics.ListCreateAPIView):
         user = self.request.user
         queryset = Task.objects.none()
 
-        if user.role == 'Yonetici' or user.is_staff or user.is_superuser:
+        if user.role == 'Admin' or user.is_staff or user.is_superuser:
             queryset = Task.objects.all().order_by('-created_at')
         elif user.role == 'Kullanici':
             queryset = Task.objects.filter(customer=user).order_by('-created_at')
