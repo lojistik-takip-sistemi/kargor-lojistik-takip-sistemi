@@ -25,7 +25,6 @@
             overflow: hidden;
         }
 
-        /* Senin orijinal blob süslemeni koruduk */
         .bg-blob {
             position: absolute;
             width: 400px;
@@ -73,7 +72,6 @@
 
         .input-field input {
             width: 100%;
-            padding: 16px 20px 16px 50px; /* Padding düzeltildi */
             padding: 16px 20px 16px 50px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -156,10 +154,10 @@
 
         <form id="loginForm">
             <div class="input-group">
-                <label>E-posta Adresi</label>
+                <label>E-posta</label>
                 <div class="input-field">
                     <i class="fa-solid fa-envelope"></i>
-                    <input type="email" id="loginEmail" placeholder="ornek@sirket.com" required>
+                    <input type="email" id="email" placeholder="muhammet@ogr.ktu.edu.tr" required>
                 </div>
             </div>
 
@@ -211,7 +209,6 @@
 
     <script src="app.js"></script>
     <script>
-        // Şifre sıfırlama isteğini backend'e gönderen JS kodu
         function requestReset() {
             const email = document.getElementById('resetEmail').value;
             if(!email) { alert("Lütfen bir e-posta adresi girin."); return; }

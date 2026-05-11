@@ -169,3 +169,8 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'muparlak5353@gmail.com' # Senin e-postan
 EMAIL_HOST_PASSWORD = 'kelmghpducapyjtm' # Gmail'den alacağın özel şifre
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+AUTHENTICATION_BACKENDS = [
+    'api.backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
