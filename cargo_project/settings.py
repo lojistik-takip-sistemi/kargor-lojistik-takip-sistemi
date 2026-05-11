@@ -53,7 +53,7 @@ ROOT_URLCONF = 'cargo_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -94,7 +94,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [BASE_DIR / 'static']  # Geliştirme ortamı için statik dosya klasörü
+# STATICFILES_DIRS: Frontend ayrildi, artık gerek yok
 
 # Django 4.2+ ile gelen yeni STORAGES yapısı
 STORAGES = {
@@ -140,12 +140,14 @@ SIMPLE_JWT = {
 }
 
 # --- CORS AYARLARI ---
+# Frontend URL'i belli olunca buraya ekle, CORS_ALLOW_ALL_ORIGINS=False yap
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "https://kargor-lojistik-takip-sistemi.onrender.com",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
     "http://127.0.0.1:5500",
-    "null",  # Frontend dosyaları yerel dizinden çift tıklayarak açılıyorsa buna ihtiyaç vardır
+    "null",
 ]
 
 CORS_ALLOW_METHODS = [

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kargor | Personel Girişi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #ff4e50;
+            --secondary: #f9d423;
+            --bg-dark: #0f172a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        /* KRİTİK DÜZELTME: overflow-y: auto eklendi */
+        body {
+            background: radial-gradient(circle at center, #1e293b, #0f172a);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+        }
+
+        .bg-blob {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            filter: blur(100px);
+            opacity: 0.15;
+            z-index: -1;
+            border-radius: 50%;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 50px 40px;
+            border-radius: 32px;
+            width: 420px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .brand-logo {
+            font-size: 40px;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 { font-size: 24px; font-weight: 700; color: white; margin-bottom: 8px; }
+        p { color: #94a3b8; font-size: 14px; margin-bottom: 35px; }
+
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; color: #94a3b8; font-size: 12px; margin-bottom: 8px; margin-left: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .input-field {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-field i { position: absolute; left: 20px; color: #64748b; }
+
+        .input-field input {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            color: white;
+            font-size: 15px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .input-field input:focus {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 20px rgba(255, 78, 80, 0.2);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--primary), #b91c1c);
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(239, 68, 68, 0.4);
+        }
+
+        .error-box {
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            color: #f87171;
+            font-size: 13px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-blob"></div>
+
+    <div class="login-card">
+        <div class="brand-logo">
+            <i class="fa-solid fa-box-archive"></i>
+        </div>
+        <h2>KARGOR</h2>
+        <p>Lojistik Kontrol Paneli Girişi</p>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label>E-posta</label>
+                <div class="input-field">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="email" placeholder="muhammet@ogr.ktu.edu.tr" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Şifre</label>
+                <div class="input-field">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <div style="text-align: left; margin-bottom: 20px; padding-left: 15px; color: #94a3b8; font-size: 13px; display: flex; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="rememberMe" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary);">
+                    <label for="rememberMe" style="cursor: pointer; text-transform: none; margin: 0; letter-spacing: normal;">Beni Hatırla</label>
+                </div>
+            </div>
+
+            <button type="submit" class="login-btn">Sisteme Giriş Yap</button>
+            
+            <div style="margin-top: 25px; font-size: 14px; color: #94a3b8;">
+                Hesabın yok mu? 
+                <a href="/register/" style="color: var(--primary); text-decoration: none; font-weight: 600; margin-left: 5px; transition: 0.3s;">
+                    Hemen Kayıt Ol
+                </a>
+            </div>
+        </form>
+
+        <div id="hataMesaji" class="error-box">
+            Giriş bilgileri hatalı. Lütfen kontrol edin.
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
