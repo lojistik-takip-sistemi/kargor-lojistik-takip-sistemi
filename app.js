@@ -1,7 +1,8 @@
 document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    const user = document.getElementById('username').value;
+    // DİKKAT: index.html içindeki id'si "loginEmail" olan inputtan veriyi alıyoruz
+    const userEmail = document.getElementById('loginEmail').value;
     const pass = document.getElementById('password').value;
     const rememberMe = document.getElementById('rememberMe').checked; // Checkbox durumu
     const hataBox = document.getElementById('hataMesaji');
@@ -10,10 +11,11 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     hataBox.style.display = 'none';
 
     // 1. Django Token Endpoint'ine istek atıyoruz
+    // Django bizden "username" beklediği için, e-posta değerini (userEmail) "username" içine yazarak yolluyoruz.
     fetch('http://127.0.0.1:8000/api/token/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user, password: pass })
+        body: JSON.stringify({ username: userEmail, password: pass })
     })
     .then(response => {
         if (response.ok) return response.json();

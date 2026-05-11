@@ -4,15 +4,21 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db.models import Count, Q
 from django.contrib.auth import get_user_model
-from .models import Project, Task, Notification, Comment
-from .serializers import TaskSerializer, UserProfileSerializer
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+from .models import Project, Task, Notification, Comment, ActionLog
+from .serializers import (
+    TaskSerializer, 
+    UserProfileSerializer, 
+    UserCreateSerializer,
+    MyTokenObtainPairSerializer
+)
 
 User = get_user_model()
 
-# --- 1. GÖREV YÖNETİMİ (CRUD) ---
-# Bu iki sınıf, eskiden yazdığımız uzun listeleme/silme kodlarının hepsini kapsar.
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+
 class TaskListView(generics.ListCreateAPIView):
     queryset = Task.objects.filter(is_active=True).order_by('-created_at')
     serializer_class = TaskSerializer
@@ -21,25 +27,19 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Task.objects.filter(is_active=True)
     serializer_class = TaskSerializer
 
-
-# --- 2. İSTATİSTİKLER VE GRAFİKLER ---
 class DashboardSummaryView(APIView):
     def get(self, request):
         try:
-            # 1. Sayılar
             total_projects = Project.objects.count()
             total_tasks = Task.objects.filter(is_active=True).count()
             
-            # 2. Grafik Verileri
             status_counts = Task.objects.filter(is_active=True).values('status').annotate(total=Count('status'))
             stats = {item['status']: item['total'] for item in status_counts}
 
-            # 3. SIRALAMA DÜZELTMESİ (En Güvenli Yol)
             all_users = User.objects.all()
             performance_list = []
             
             for u in all_users:
-                # 'assigned_to' senin Task modelindeki ForeignKey alanın olmalı!
                 c_count = Task.objects.filter(assigned_to=u, status='Tamamlandi', is_active=True).count()
                 t_count = Task.objects.filter(assigned_to=u, is_active=True).count()
                 
@@ -49,7 +49,6 @@ class DashboardSummaryView(APIView):
                     "total_assigned": t_count
                 })
 
-            # Büyükten küçüğe manuel sıralama
             performance_list = sorted(performance_list, key=lambda x: x['completed_count'], reverse=True)[:5]
 
             return Response({
@@ -61,11 +60,8 @@ class DashboardSummaryView(APIView):
                 "performance": performance_list
             })
         except Exception as e:
-            print(f"KRİTİK HATA: {str(e)}") # Hatayı terminalde görmek için
             return Response({"error": str(e)}, status=500)
 
-
-# --- 3. PROFİL AYARLARI ---
 class ProfileView(APIView):
     def get(self, request):
         serializer = UserProfileSerializer(request.user)
@@ -78,8 +74,6 @@ class ProfileView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
 
-
-# --- 4. BİLDİRİMLER ---
 class NotificationListView(APIView):
     def get(self, request):
         notifs = Notification.objects.filter(user=request.user).order_by('-created_at')[:10]
@@ -91,29 +85,22 @@ class NotificationListView(APIView):
         } for n in notifs]
         return Response(data)
 
-
-# --- 5. YORUMLAR ---
 class CommentListView(APIView):
     def get(self, request, task_id):
         comments = Comment.objects.filter(task_id=task_id).order_by('-created_at')
         data = [{
             "user": c.user.username, 
-            "text": c.text, 
+            "text": getattr(c, 'content', ''), 
             "created_at": c.created_at
         } for c in comments]
         return Response(data)
     
-from .serializers import UserCreateSerializer
-
 class UserManagementView(generics.ListCreateAPIView):
     queryset = User.objects.all().order_by('username')
     serializer_class = UserCreateSerializer
-    # Sadece giriş yapmış ve yönetici olanlar görebilsin (Opsiyonel)
-    # permission_classes = [permissions.IsAuthenticated]
 
-    class SystemLogsView(APIView):
-     def get(self, request):
-        # Şimdilik ekranda hata çıkmasın ve dolu görünsün diye sabit veriler gönderiyoruz
+class SystemLogsView(APIView):
+    def get(self, request):
         logs = [
             {"action": "Sistem başarıyla başlatıldı.", "time": "Az önce"},
             {"action": "Yeni personel kayıtları güncellendi.", "time": "1 saat önce"},

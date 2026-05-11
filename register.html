@@ -27,8 +27,8 @@
         <form id="registerForm">
             <div class="input-group">
                 <div class="input-field">
-                    <i class="fa-solid fa-user"></i>
-                    <input type="text" id="regUsername" placeholder="Kullanıcı Adı" required>
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="regEmail" placeholder="E-posta Adresi" required>
                 </div>
             </div>
             <div class="input-group">
@@ -52,8 +52,13 @@
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            // E-posta inputundan değeri alıyoruz
+            const emailValue = document.getElementById('regEmail').value;
+            
             const data = {
-                username: document.getElementById('regUsername').value,
+                // Backend hem username hem email bekleyebileceği için aynı veriyi ikisine de veriyoruz
+                username: emailValue, 
+                email: emailValue,
                 full_name: document.getElementById('regFullName').value,
                 password: document.getElementById('regPassword').value,
                 role: 'Personel' // Yeni kayıt olanlar varsayılan olarak personel olur
@@ -69,7 +74,7 @@
                     alert('Kayıt başarılı! Şimdi giriş yapabilirsiniz.');
                     window.location.href = 'index.html';
                 } else {
-                    res.json().then(err => alert('Hata: ' + JSON.stringify(err)));
+                    res.json().then(err => alert('Hata: Aynı E-posta adresi sistemde kayıtlı olabilir. ' + JSON.stringify(err)));
                 }
             });
         });

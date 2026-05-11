@@ -25,7 +25,7 @@
             overflow: hidden;
         }
 
-        /* Arka Plan Süslemesi */
+        /* Senin orijinal blob süslemeni koruduk */
         .bg-blob {
             position: absolute;
             width: 400px;
@@ -73,6 +73,7 @@
 
         .input-field input {
             width: 100%;
+            padding: 16px 20px 16px 50px; /* Padding düzeltildi */
             padding: 16px 20px 16px 50px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -119,6 +120,28 @@
             font-size: 13px;
             display: none;
         }
+
+        /* Şifre Sıfırlama Modalı İçin CSS */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content { 
+            background: #1e293b; 
+            padding: 40px; 
+            border-radius: 28px; 
+            width: 380px; 
+            text-align: center; 
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
     </style>
 </head>
 <body>
@@ -133,10 +156,10 @@
 
         <form id="loginForm">
             <div class="input-group">
-                <label>Kullanıcı Adı</label>
+                <label>E-posta Adresi</label>
                 <div class="input-field">
-                    <i class="fa-solid fa-user"></i>
-                    <input type="text" id="username" placeholder="Personel kodunuzu girin" required>
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="loginEmail" placeholder="ornek@sirket.com" required>
                 </div>
             </div>
 
@@ -148,22 +171,22 @@
                 </div>
             </div>
 
-            <div style="text-align: left; margin-bottom: 20px; padding-left: 15px; color: #94a3b8; font-size: 13px; display: flex; align-items: center; gap: 8px;">
-                <input type="checkbox" id="rememberMe" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary);">
-                <label for="rememberMe" style="cursor: pointer;">Beni Hatırla</label>
+            <div style="text-align: left; margin-bottom: 20px; padding-left: 15px; color: #94a3b8; font-size: 13px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="rememberMe" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary);">
+                    <label for="rememberMe" style="cursor: pointer; text-transform: none; margin: 0; letter-spacing: normal;">Beni Hatırla</label>
+                </div>
+                <a href="#" onclick="document.getElementById('resetModal').style.display='flex'" style="color: #94a3b8; text-decoration: none; font-weight: 500;">Şifremi Unuttum</a>
             </div>
+
             <button type="submit" class="login-btn">Sisteme Giriş Yap</button>
+            
             <div style="margin-top: 25px; font-size: 14px; color: #94a3b8;">
                 Hesabın yok mu? 
                 <a href="register.html" style="color: var(--primary); text-decoration: none; font-weight: 600; margin-left: 5px; transition: 0.3s;">
                     Hemen Kayıt Ol
                 </a>
             </div>
-            </form>
-
-        <div id="hataMesaji" class="error-box">
-            Giriş bilgileri hatalı. Lütfen kontrol edin.
-        </div>
         </form>
 
         <div id="hataMesaji" class="error-box">
@@ -171,6 +194,43 @@
         </div>
     </div>
 
+    <div id="resetModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color: white; margin-bottom: 10px;">Şifre Sıfırlama</h3>
+            <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Kayıtlı e-posta adresinizi girin, size bir sıfırlama bağlantısı gönderelim.</p>
+            
+            <div class="input-field" style="margin-bottom: 20px;">
+                <i class="fa-solid fa-envelope" style="left: 15px;"></i>
+                <input type="email" id="resetEmail" placeholder="E-posta Adresiniz" style="width: 100%; padding: 12px 15px 12px 45px; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: white;">
+            </div>
+
+            <button onclick="requestReset()" class="login-btn" style="margin-top: 0; padding: 12px;">Bağlantıyı Gönder</button>
+            <button onclick="document.getElementById('resetModal').style.display='none'" style="background:none; border:none; color:#94a3b8; margin-top:15px; cursor:pointer; font-size: 13px;">Kapat</button>
+        </div>
+    </div>
+
     <script src="app.js"></script>
+    <script>
+        // Şifre sıfırlama isteğini backend'e gönderen JS kodu
+        function requestReset() {
+            const email = document.getElementById('resetEmail').value;
+            if(!email) { alert("Lütfen bir e-posta adresi girin."); return; }
+
+            fetch('http://127.0.0.1:8000/api/password-reset-request/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message || "Bağlantı gönderildi.");
+                document.getElementById('resetModal').style.display = 'none';
+            })
+            .catch(err => {
+                console.error(err);
+                alert("İstek sırasında bir hata oluştu.");
+            });
+        }
+    </script>
 </body>
 </html>

@@ -159,3 +159,13 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # QR Kodlar ve Dosyalar için Medya Ayarları
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# cargo_project/settings.py dosyasının en altına ekle
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'muparlak5353@gmail.com' # Senin e-postan
+EMAIL_HOST_PASSWORD = 'kelmghpducapyjtm' # Gmail'den alacağın özel şifre
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
