@@ -24,12 +24,13 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 class TaskSerializer(serializers.ModelSerializer):
     assignee_name = serializers.CharField(source='assigned_to.username', read_only=True, default='Atanmadı')
-    project_name = serializers.CharField(source='project.name', read_only=True)
+    project_name = serializers.CharField(source='project.name', read_only=True, default='Bireysel Kargo')
+    customer_name = serializers.CharField(source='customer.full_name', read_only=True, default='Sistem') # Yeni
     
     class Meta:
         model = Task
         fields = '__all__'
-        read_only_fields = ['task_code', 'created_at']
+        read_only_fields = ['task_code', 'created_at', 'customer']
 
 class CommentSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.full_name', read_only=True)

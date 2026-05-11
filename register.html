@@ -7,18 +7,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* index.html ile aynı tasarımsal temeller */
         :root { --primary: #ff4e50; --secondary: #f9d423; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: radial-gradient(circle at center, #1e293b, #0f172a); height: 100vh; display: flex; justify-content: center; align-items: center; }
-        .register-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 32px; width: 420px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .register-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 32px; width: 420px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         h2 { color: white; margin-bottom: 25px; }
         .input-group { margin-bottom: 15px; text-align: left; }
         .input-field { position: relative; display: flex; align-items: center; }
         .input-field i { position: absolute; left: 20px; color: #64748b; }
-        .input-field input { width: 100%; padding: 14px 20px 14px 50px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; color: white; outline: none; }
-        .register-btn { width: 100%; padding: 16px; margin-top: 10px; border: none; border-radius: 18px; background: linear-gradient(135deg, var(--primary), #b91c1c); color: white; font-weight: 700; cursor: pointer; }
-        .link { color: #94a3b8; font-size: 13px; display: block; margin-top: 15px; text-decoration: none; }
+        .input-field input { width: 100%; padding: 14px 20px 14px 50px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; color: white; outline: none; transition: 0.3s;}
+        .input-field input:focus { border-color: var(--primary); background: rgba(255, 255, 255, 0.08); box-shadow: 0 0 20px rgba(255, 78, 80, 0.2); }
+        .register-btn { width: 100%; padding: 16px; margin-top: 10px; border: none; border-radius: 18px; background: linear-gradient(135deg, var(--primary), #b91c1c); color: white; font-weight: 700; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);}
+        .register-btn:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(239, 68, 68, 0.4); }
+        .link { color: #94a3b8; font-size: 13px; display: block; margin-top: 25px; text-decoration: none; transition: 0.3s;}
+        .link:hover { color: var(--primary); }
     </style>
 </head>
 <body>
@@ -52,16 +54,14 @@
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // E-posta inputundan değeri alıyoruz
             const emailValue = document.getElementById('regEmail').value;
             
             const data = {
-                // Backend hem username hem email bekleyebileceği için aynı veriyi ikisine de veriyoruz
                 username: emailValue, 
                 email: emailValue,
                 full_name: document.getElementById('regFullName').value,
                 password: document.getElementById('regPassword').value,
-                role: 'Personel' // Yeni kayıt olanlar varsayılan olarak personel olur
+                role: 'Kullanici' // Dışarıdan kayıt olan herkes müşteri olur
             };
 
             fetch('http://127.0.0.1:8000/api/register/', {

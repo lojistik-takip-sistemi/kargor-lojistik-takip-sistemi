@@ -41,10 +41,13 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(profileData => {
                 console.log("Giriş Başarılı! Rol:", profileData.role);
                 
+                // 3. GELEN ROLE GÖRE YÖNLENDİRME (AKILLI KAPI)
                 if (profileData.role === 'Personel') {
-                    window.location.href = "personel.html"; 
+                    window.location.href = "personel.html"; // Kurye paneli
+                } else if (profileData.role === 'Kullanici') {
+                    window.location.href = "kullanici.html"; // Müşteri takip paneli
                 } else {
-                    window.location.href = "dashboard.html"; 
+                    window.location.href = "dashboard.html"; // Yönetici paneli
                 }
             })
             .catch(error => {

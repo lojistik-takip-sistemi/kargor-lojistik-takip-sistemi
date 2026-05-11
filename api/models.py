@@ -7,11 +7,13 @@ from django.dispatch import receiver
 class User(AbstractUser):
     ROLE_CHOICES = (
         ('Yonetici', 'Yönetici'), 
-        ('Personel', 'Personel')
+        ('Personel', 'Personel (Kurye)'),
+        ('Kullanici', 'Kullanıcı (Müşteri)') # YENİ EKLENEN ROL
     )
     full_name = models.CharField(max_length=100) 
     phone = models.CharField(max_length=15, blank=True, null=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='Personel')
+    # Varsayılan rolü 'Kullanici' yaptık ki dışarıdan kayıt olan herkes önce müşteri olsun
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='Kullanici')
 
     class Meta:
         db_table = 'Users'
@@ -33,33 +35,43 @@ class Project(models.Model):
         return self.name
 
 class Task(models.Model):
-    STATUS_CHOICES = (('Yapilacak', 'Yapılacak'), ('Devam_Ediyor', 'Devam Ediyor'), ('Tamamlandi', 'Tamamlandı'))
+    # 'Onay_Bekliyor' durumu eklendi
+    STATUS_CHOICES = (
+        ('Onay_Bekliyor', 'Onay Bekliyor'), 
+        ('Yapilacak', 'Yapılacak'), 
+        ('Devam_Ediyor', 'Devam Ediyor'), 
+        ('Tamamlandi', 'Tamamlandı')
+    )
     PRIORITY_CHOICES = (('Dusuk', 'Düşük'), ('Normal', 'Normal'), ('Acil', 'Acil'))
     
-    # Çakışmayı önlemek için UUID kullanımı
     task_code = models.CharField(max_length=50, unique=True, blank=True)
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200) # Kargo içeriği (Örn: Evrak, Kutu)
     description = models.TextField(blank=True, null=True)
     
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')
+    # --- YENİ EKLENEN KARGO BİLGİLERİ ---
+    origin = models.CharField(max_length=200, blank=True, null=True) # Nereden
+    destination = models.CharField(max_length=200, blank=True, null=True) # Nereye
+    customer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='my_cargos') # Kargoyu gönderen müşteri
+    
+    # Proje artık zorunlu değil (Müşteri proje seçmez)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks', null=True, blank=True)
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_tasks')
     
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Yapilacak')
+    # Varsayılan durum "Onay Bekliyor" oldu
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Onay_Bekliyor')
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='Normal')
     
     due_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
-    # YENİ EKLENEN SATIR: Aktif/Pasif Kontrolü
     is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'Tasks'
-        ordering = ['-created_at'] # Sıralama uyarısını çözmek için daha önce eklemiştik
+        ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
         if not self.task_code:
-            self.task_code = f"TSK-{str(uuid.uuid4())[:8].upper()}"
+            self.task_code = f"KRG-{str(uuid.uuid4())[:8].upper()}" # Görev kodunu KRG (Kargo) yaptık
         super().save(*args, **kwargs)
 
     def __str__(self):
