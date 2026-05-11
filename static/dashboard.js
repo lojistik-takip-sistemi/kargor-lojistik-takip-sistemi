@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
     // --- 1. GÜVENLİK VE GİRİŞ KONTROLÜ ---
     if (!token) { 
-        window.location.href = "index.html"; 
+        window.location.href = "/"; 
         return; 
     }
 
@@ -312,7 +312,7 @@ document.addEventListener("DOMContentLoaded", function() {
         localStorage.removeItem('refresh_token');
         sessionStorage.removeItem('access_token');
         sessionStorage.removeItem('refresh_token');
-        window.location.href="index.html"; 
+        window.location.href="/"; 
     };
 
     // --- YARDIMCI FONKSİYONLAR ---

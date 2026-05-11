@@ -20,11 +20,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Token geçerliyse kullanıcıyı direkt rolüne göre yönlendiriyoruz (Giriş ekranını atla)
             console.log("Kayıtlı oturum bulundu. Yönlendiriliyor...");
             if (profileData.role === 'Personel') {
-                window.location.href = "personel.html";
+                window.location.href = "/personel/";
             } else if (profileData.role === 'Kullanici') {
-                window.location.href = "kullanici.html";
+                window.location.href = "/kullanici/";
             } else {
-                window.location.href = "dashboard.html";
+                window.location.href = "/dashboard/";
             }
         })
         .catch(err => {
@@ -81,11 +81,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // GELEN ROLE GÖRE YÖNLENDİRME (AKILLI KAPI)
                 if (profileData.role === 'Personel') {
-                    window.location.href = "personel.html"; 
+                    window.location.href = "/personel/"; 
                 } else if (profileData.role === 'Kullanici') {
-                    window.location.href = "kullanici.html"; 
+                    window.location.href = "/kullanici/"; 
                 } else {
-                    window.location.href = "dashboard.html"; 
+                    window.location.href = "/dashboard/"; 
                 }
             })
             .catch(error => {

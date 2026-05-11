@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // --- GÜVENLİK KONTROLÜ ---
     if (!token) {
-        window.location.href = 'index.html';
+        window.location.href = "/";
         return;
     }
 
@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function() {
         })
         .catch(err => {
             localStorage.clear();
-            window.location.href = 'index.html';
+            window.location.href = "/";
         });
     }
 
@@ -202,7 +202,7 @@ document.addEventListener("DOMContentLoaded", function() {
         sessionStorage.removeItem('access_token');
         sessionStorage.removeItem('refresh_token');
         
-        window.location.href = 'index.html';
+        window.location.href = "/";
     };
 
     const escapeHTML = (s) => s ? s.toString().replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":"&#39;",'"':'&quot;'}[c])) : '';
