@@ -13,8 +13,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG') == 'True'
 
-# Geliştirme aşamasında her türlü bağlantıya izin ver
+# Render ve yerel geliştirme için izin verilen hostlar
 ALLOWED_HOSTS = ['*']
+RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Uygulamalar
 INSTALLED_APPS = [
@@ -35,6 +38,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Statik dosyalar için (SecurityMiddleware'den hemen sonra)
     'corsheaders.middleware.CorsMiddleware',  # CORS her zaman en üstlerde olmalı
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -70,18 +74,15 @@ AUTH_USER_MODEL = 'api.User'
 # --- ÖNEMLİ: POST VERİ KAYBI VE 405 HATASI İÇİN ---
 APPEND_SLASH = False
 
-# SQL Server Veritabanı Ayarları (Trusted_Connection ile yerel bağlanma)
+# PostgreSQL Veritabanı Ayarları (.env dosyasından okunur)
 DATABASES = {
     'default': {
-        'ENGINE': 'mssql',
-        'NAME': 'KargoDB',
-        'HOST': '(localdb)\\MSSQLLocalDB',
-        'USER': '',
-        'PASSWORD': '',
-        'OPTIONS': {
-            'driver': 'ODBC Driver 17 for SQL Server',
-            'extra_params': 'Trusted_Connection=yes;'
-        },
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'cargo_db_s311'),
+        'USER': os.getenv('DB_USER', ''),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
@@ -91,7 +92,9 @@ TIME_ZONE = 'Europe/Istanbul'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # --- REST FRAMEWORK: JWT GÜVENLİĞİ, FİLTRELEME VE BRUTE FORCE KORUMASI ---
@@ -130,8 +133,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:8000",
     "http://127.0.0.1:5500",
-    "null"  # Frontend dosyaları yerel dizinden çift tıklayarak açılıyorsa buna ihtiyaç vardır
+    "null",  # Frontend dosyaları yerel dizinden çift tıklayarak açılıyorsa buna ihtiyaç vardır
 ]
+CORS_ALLOW_ALL_ORIGINS = True  # Render deploy sonrası frontend URL'ini ekleyince bunu kaldır
 
 CORS_ALLOW_METHODS = [
     "DELETE",
@@ -153,22 +157,9 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-# E-postaları VS Code terminalinde görüntülemek için
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
 # QR Kodlar ve Dosyalar için Medya Ayarları
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# cargo_project/settings.py dosyasının en altına ekle
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'muparlak5353@gmail.com' # Senin e-postan
-EMAIL_HOST_PASSWORD = 'kelmghpducapyjtm' # Gmail'den alacağın özel şifre
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 AUTHENTICATION_BACKENDS = [
     'api.backends.EmailOrUsernameModelBackend',
@@ -180,8 +171,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-
-# Kendi Gmail adresini ve Google'dan alacağın 16 haneli "Uygulama Şifresi"ni buraya yazmalısın.
-# DİKKAT: Buraya normal Gmail şifreni DEĞİL, uygulama şifreni yazmalısın.
-EMAIL_HOST_USER = 'muparlak5353@gmail.com' 
-EMAIL_HOST_PASSWORD = 'kelmghpducapyjtm'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'muparlak5353@gmail.com')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'kelmghpducapyjtm')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

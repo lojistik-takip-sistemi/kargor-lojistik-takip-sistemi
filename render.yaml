@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: kargor-lojistik
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn cargo_project.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DB_NAME
+        value: cargo_db_s311
+      - key: DB_USER
+        value: muhammet_emin_parlak
+      - key: DB_HOST
+        value: dpg-d812lc9o3t8c73e903gg-a.frankfurt-postgres.render.com
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_PASSWORD
+        sync: false   # Render panelinden gizli olarak girilecek
+      - key: EMAIL_HOST_USER
+        value: muparlak5353@gmail.com
+      - key: EMAIL_HOST_PASSWORD
+        sync: false   # Render panelinden gizli olarak girilecek
+      - key: PYTHON_VERSION
+        value: "3.12.0"
