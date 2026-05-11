@@ -25,30 +25,32 @@ class TaskListView(generics.ListCreateAPIView):
     def get_queryset(self):
         user = self.request.user
         
-        # Eğer giriş yapmamış birisi erişmeye çalışırsa boş döner
+        # Giriş yapılmamışsa hiçbir şey döndürme
         if user.is_anonymous:
             return Task.objects.none()
 
-        # TEST İÇİN: Şimdilik tüm rollere her şeyi gösterelim. 
-        # Verilerin geldiğini gördükten sonra kısıtlamayı tekrar ekleriz.
-        return Task.objects.all().order_by('-created_at')
+        # 1. YÖNETİCİ: Rolü 'Yonetici' olanlar VEYA Django'nun staff/superuser yetkisi olanlar
+        # Bu sayede createsuperuser ile açtığın hesaplarda role 'Kullanici' olsa bile verileri görürsün.
+        if user.role == 'Yonetici' or user.is_staff or user.is_superuser:
+            return Task.objects.all().order_by('-created_at')
+
+        # 2. KULLANICI: Sadece kendi paketlerini görür
+        elif user.role == 'Kullanici':
+            return Task.objects.filter(customer=user).order_by('-created_at')
+
+        # 3. PERSONEL: Sadece kendine atanan ve onaylananları görür
+        elif user.role == 'Personel':
+            return Task.objects.filter(assigned_to=user).exclude(status='Onay_Bekliyor').order_by('-created_at')
+
+        return Task.objects.none()
 
     def perform_create(self, serializer):
-        # Müşteri kargo oluştururken sistemin hata vermemesi için
         user = self.request.user
+        # Müşteri kargo oluşturuyorsa customer olarak onu ata
         if user.role == 'Kullanici':
             serializer.save(customer=user, status='Onay_Bekliyor')
         else:
             serializer.save()
-
-    def perform_create(self, serializer):
-        user = self.request.user
-        # Eğer kullanıcı 'Kullanici' rolündeyse kargoyu 'Onay Bekliyor' olarak kaydet
-        if user.role == 'Kullanici':
-            serializer.save(customer=user, status='Onay_Bekliyor')
-        else:
-            # Yönetici oluşturuyorsa doğrudan 'Yapilacak' olarak kaydet
-            serializer.save(status='Yapilacak')
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Task.objects.filter(is_active=True)
