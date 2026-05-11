@@ -285,38 +285,51 @@ const fetchDashboardStats = () => {
     document.getElementById('closeLogModalBtn').onclick = () => logModal.style.display = "none";
 
     // --- YENİ GÖREV EKLEME (CREATE) ---
-    document.getElementById('createTaskForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        
-        const newTask = {
-            title: document.getElementById('taskTitle').value,
-            project: document.getElementById('taskProject').value,
-            priority: document.getElementById('taskPriority').value,
-            status: "Yapilacak",
-            assigned_to: payload.user_id
-        };
+   document.getElementById('createTaskForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const selectBox = document.getElementById('taskAssignee');
+    const secilenDeger = selectBox.value;
 
-        fetch('http://127.0.0.1:8000/api/tasks/', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
-            },
-            body: JSON.stringify(newTask)
-        })
-        .then(res => {
-            if (res.ok) {
-                taskModal.style.display = "none";
-                e.target.reset(); 
-                fetchTasks(); 
-                fetchDashboardStats(); 
-                alert("Görev başarıyla oluşturuldu!");
-            } else {
-                res.json().then(err => alert("Hata: " + JSON.stringify(err)));
-            }
-        });
+    // Sayıya çevirmeyi deniyoruz
+    const personelId = parseInt(secilenDeger);
+
+    const newTask = {
+        title: document.getElementById('taskTitle').value,
+        project: document.getElementById('taskProject').value,
+        priority: document.getElementById('taskPriority').value,
+        status: "Yapilacak",
+        // Eğer sayı geçerliyse onu kullan, değilse (NaN ise) null gönder
+        assigned_to: !isNaN(personelId) ? personelId : null 
+    };
+
+    console.log("Kontrol Edilen Veri:", newTask);
+
+    if (newTask.assigned_to === null) {
+        alert("Lütfen listeden geçerli bir personel seçin!");
+        return; // İşlemi durdur, boş görevi gönderme
+    }
+
+    fetch('http://127.0.0.1:8000/api/tasks/', {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(newTask)
+    })
+    .then(res => {
+        if (res.ok) {
+            taskModal.style.display = "none";
+            e.target.reset(); 
+            fetchTasks(); 
+            fetchDashboardStats(); 
+            alert("Görev başarıyla personele atandı!");
+        } else {
+            res.json().then(err => alert("Hata: " + JSON.stringify(err)));
+        }
     });
+});
 
     // --- GÜNCELLEME (UPDATE) ---
     window.openUpdateModal = (taskId, currentStatus) => {
@@ -560,6 +573,39 @@ window.onclick = function(event) {
         event.target.style.display = 'none';
     }
 }
+// Görev ekleme formundaki dropdown'ı personellerle doldur (Akıllı Versiyon)
+function loadPersonnelDropdown() {
+    fetch('http://127.0.0.1:8000/api/users/', {
+        headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(res => res.json())
+    .then(data => {
+        const select = document.getElementById('taskAssignee');
+        if (!select) return;
 
+        // Backend'den gelen ham veriyi konsola basalım
+        console.log("Backend'den gelen ham veri:", data);
+
+        let usersArray = Array.isArray(data) ? data : (data.results || []);
+        
+        // DİKKAT: Filtrelemeyi şimdilik devre dışı bırakıyoruz ki isimler geri gelsin
+        // Sadece gelen veride ne yazdığını göreceğiz
+        let optionsHTML = '<option value="">-- Personel Seçin --</option>';
+        
+        usersArray.forEach(u => {
+            const realId = u.id || u.pk;
+            // Konsola her kullanıcının rolünü yazdıralım ki hatayı görelim
+            console.log(`Kullanıcı: ${u.username}, Rolü ne yazıyor: "${u.role}"`);
+
+            optionsHTML += `<option value="${realId}">${u.full_name || u.username} (${u.role || 'Rol Yok'})</option>`;
+        });
+        
+        select.innerHTML = optionsHTML;
+    })
+    .catch(err => console.error("Liste çekme hatası:", err));
+}
+
+// Sayfa yüklendiğinde bu dropdown da dolsun
+loadPersonnelDropdown();
 
 });

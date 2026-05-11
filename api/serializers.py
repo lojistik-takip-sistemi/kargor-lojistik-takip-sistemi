@@ -22,7 +22,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class TaskSerializer(serializers.ModelSerializer):
-    assigned_to_name = serializers.CharField(source='assigned_to.full_name', read_only=True)
+    assignee_name = serializers.CharField(source='assigned_to.username', read_only=True, default='Atanmadı')
     project_name = serializers.CharField(source='project.name', read_only=True)
     
     class Meta:

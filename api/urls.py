@@ -1,4 +1,8 @@
 from django.urls import path
+from rest_framework import generics
+
+from api.models import Project
+from api.serializers import ProjectSerializer
 from .views import (
     TaskListView, 
     TaskDetailView, 
@@ -17,4 +21,5 @@ urlpatterns = [
     path('notifications/', NotificationListView.as_view(), name='notifications'),
     path('tasks/<int:task_id>/comments/', CommentListView.as_view(), name='task-comments'),
     path('users/', UserManagementView.as_view(), name='user-management'),
+    path('projects/', generics.ListAPIView.as_view(queryset=Project.objects.all(), serializer_class=ProjectSerializer), name='project-list'),
 ]
