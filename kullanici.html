@@ -3,166 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kargor | Kargo Takip Paneli</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Kargor | Müşteri Paneli</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        :root { --primary: #ff4e50; --secondary: #f9d423; --bg-dark: #0f172a; }
+        :root {
+            --primary: #f97316;
+            --primary-hover: #ea580c;
+            --bg-dark: #0f172a;
+            --sidebar-bg: #1e293b;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #facc15;
+            --danger: #ef4444;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: #0f172a; color: white; padding: 30px; }
-        
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; background: rgba(255,255,255,0.02); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
-        .btn-group { display: flex; gap: 10px; }
-        .primary-btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 600; transition: 0.3s; }
-        .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3); }
-        .logout-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 600; }
-        
-        .search-box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 16px; margin-bottom: 30px; display: flex; gap: 15px; }
-        .search-box input { flex: 1; padding: 15px; background: #1e293b; border: none; border-radius: 10px; color: white; outline: none; }
-        .search-box button { background: var(--primary); color: white; border: none; padding: 0 25px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+        body { background: var(--bg-dark); color: var(--text-main); display: flex; min-height: 100vh; overflow: hidden; }
 
-        .cargo-card { background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.05); padding: 25px; border-radius: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .status-badge { display: inline-block; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; }
+        /* Sidebar */
+        .sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; padding: 30px 20px; border-right: 1px solid var(--border-color); }
+        .logo { color: var(--primary); font-size: 26px; font-weight: 800; margin-bottom: 30px; text-align: center; letter-spacing: 1px; }
         
-        /* Dinamik Renkler */
-        .status-onay-bekliyor { background: rgba(250, 204, 21, 0.1); color: #facc15; border: 1px solid rgba(250, 204, 21, 0.2); }
-        .status-yapilacak { background: rgba(255, 78, 80, 0.1); color: #ff4e50; border: 1px solid rgba(255, 78, 80, 0.2); }
-        .status-devam-ediyor { background: rgba(96, 165, 250, 0.1); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.2); }
-        .status-tamamlandi { background: rgba(74, 222, 128, 0.1); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.2); }
+        /* Kullanıcı Profil Özeti */
+        .user-profile-side { display: flex; align-items: center; gap: 12px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 15px; margin-bottom: 25px; }
+        .user-avatar { width: 40px; height: 40px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; }
+        .user-details-side h4 { font-size: 14px; margin-bottom: 2px; }
+        .user-details-side p { font-size: 11px; color: var(--text-muted); }
 
-        /* Modal Tasarımı */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); }
-        .modal-content { background: #1e293b; padding: 40px; border-radius: 28px; width: 450px; border: 1px solid rgba(255,255,255,0.1); }
-        .modal-content h3 { margin-bottom: 25px; text-align: center; color: white; }
-        .modal-content input, .modal-content textarea { width: 100%; padding: 14px; margin-bottom: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; outline: none; }
-        .modal-content input:focus { border-color: var(--primary); }
+        .nav-menu { display: flex; flex-direction: column; gap: 10px; }
+        .nav-item { padding: 14px 20px; border-radius: 12px; cursor: pointer; transition: 0.3s; color: var(--text-muted); display: flex; align-items: center; gap: 12px; font-weight: 500; text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background: rgba(249, 115, 22, 0.1); color: var(--primary); }
+        .logout-btn { margin-top: auto; color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05); }
+
+        /* Main Content */
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--card-bg); padding: 25px; border-radius: 24px; border: 1px solid var(--border-color); backdrop-filter: blur(10px); }
+        .stat-card h4 { color: var(--text-muted); font-size: 13px; text-transform: uppercase; margin-bottom: 10px; }
+        .stat-card h2 { font-size: 32px; font-weight: 700; }
+
+        /* Kargo Listesi Tasarımı */
+        .search-bar { width: 100%; padding: 16px; margin-bottom: 25px; border-radius: 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: white; outline: none; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.02); padding: 18px 24px; margin-bottom: 12px; border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.05); transition: 0.2s; }
+        .item-row:hover { background: rgba(255, 255, 255, 0.04); }
+        
+        .status-badge { padding: 6px 12px; border-radius: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+
+        /* KRİTİK: İptal Butonu Stili */
+        .cancel-btn { 
+            background: rgba(239, 68, 68, 0.1); 
+            color: var(--danger); 
+            border: 1px solid var(--danger); 
+            padding: 8px 15px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-size: 12px; 
+            font-weight: 700;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .cancel-btn:hover { background: var(--danger); color: white; }
+
+        /* Modallar */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(10px); }
+        .modal-content { background: #1e293b; padding: 35px; border-radius: 25px; width: 500px; border: 1px solid var(--border-color); max-height: 90vh; overflow-y: auto; }
+        
+        label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; font-weight: 600; margin-top: 10px; }
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: white; outline: none; }
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; font-weight: 700; transition: 0.3s; width: 100%; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <div>
-            <h2><i class="fa-solid fa-box-open" style="color: var(--primary);"></i> Kargor Müşteri Paneli</h2>
-            <p style="color: #94a3b8; margin-top: 5px;">Kargolarınızı oluşturun ve takip edin.</p>
+    <div class="sidebar">
+        <div class="logo">KARGOR</div>
+        
+        <div class="user-profile-side">
+            <div class="user-avatar" id="userInitial">U</div>
+            <div class="user-details-side">
+                <h4 id="userNameDisplay">Yükleniyor...</h4>
+                <p id="userRoleDisplay">Değerli Müşterimiz</p>
+            </div>
         </div>
-        <div class="btn-group">
-            <button onclick="document.getElementById('cargoModal').style.display='flex'" class="primary-btn"><i class="fa-solid fa-plus"></i> Yeni Kargo Talebi</button>
-            <button id="logoutBtn" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Güvenli Çıkış</button>
+
+        <div class="nav-menu">
+            <div class="nav-item active"><i class="fa-solid fa-boxes-packing"></i> Kargolarım</div>
+            <div class="nav-item" onclick="document.getElementById('taskModal').style.display='flex'"><i class="fa-solid fa-plus-circle"></i> Yeni Kargo Talebi</div>
+            <div class="nav-item" onclick="openProfileModal()"><i class="fa-solid fa-user-circle"></i> Hesap Ayarları</div>
+            <a href="dashboard.html" id="adminLink" class="nav-item" style="display: none; text-decoration: none;">
+                <i class="fa-solid fa-gauge-high"></i> Yönetici Paneli
+            </a>
         </div>
+        
+        <button onclick="logout()" class="nav-item logout-btn"><i class="fa-solid fa-power-off"></i> Güvenli Çıkış</button>
     </div>
 
-    <div class="search-box">
-        <input type="text" id="trackCode" placeholder="Kargo Takip Numaranızı Girin (Örn: KRG-123456)">
-        <button onclick="sorgula()"><i class="fa-solid fa-magnifying-glass"></i> Sorgula</button>
+    <div class="main-content">
+        <div class="top-bar">
+            <div>
+                <h1>Kargo Yönetim Merkeziniz</h1>
+                <p style="color: var(--text-muted); font-size: 14px;">Gönderilerinizin durumunu buradan takip edebilir veya yeni talep oluşturabilirsiniz.</p>
+            </div>
+            </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>Toplam Gönderi</h4>
+                <h2 id="statTotal">0</h2>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid var(--warning);">
+                <h4>Yoldaki Paketler</h4>
+                <h2 id="statInProgress" style="color: var(--warning);">0</h2>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid var(--success);">
+                <h4>Teslim Edilenler</h4>
+                <h2 id="statDone" style="color: var(--success);">0</h2>
+            </div>
+        </div>
+
+        <input type="text" id="searchInput" class="search-bar" placeholder="Kargo adı veya kodu ile arama yapın...">
+
+        <div style="background: var(--card-bg); padding: 25px; border-radius: 24px; border: 1px solid var(--border-color);">
+            <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-list-check"></i> Mevcut Gönderilerim</h3>
+            <div id="shipment-list">
+                <p style="color: var(--text-muted); text-align: center; padding: 20px;">Veriler yükleniyor...</p>
+            </div>
+        </div>
+        
+        <div id="userNotifList" style="margin-top: 25px; opacity: 0.8;"></div>
     </div>
 
-    <h3 style="margin-bottom: 20px;">Kargo Talepleriniz</h3>
-    <div id="my-cargo-list">
-        <p style="color: #94a3b8;">Kargolarınız yükleniyor...</p>
-    </div>
-
-    <div id="cargoModal" class="modal">
+    <div id="taskModal" class="modal">
         <div class="modal-content">
-            <h3>Kargo Gönderim Formu</h3>
-            <form id="cargoForm">
-                <input type="text" id="title" placeholder="Kargo İçeriği (Örn: Paket, Belge)" required>
-                <input type="text" id="origin" placeholder="Nereden (Adres)" required>
-                <input type="text" id="destination" placeholder="Nereye (Adres)" required>
-                <textarea id="desc" placeholder="Açıklama veya Not (Opsiyonel)" rows="3"></textarea>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="primary-btn" style="flex: 1;">Talebi İlet</button>
-                    <button type="button" onclick="document.getElementById('cargoModal').style.display='none'" class="primary-btn" style="background: #475569; flex: 1;">İptal</button>
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Yeni Kargo Gönderimi</h3>
+                <span onclick="document.getElementById('taskModal').style.display='none'" style="cursor:pointer; font-size:24px;">&times;</span>
+            </div>
+            <form id="createShipmentForm">
+                <label>Kargo İçeriği (Başlık)</label>
+                <input type="text" id="shipmentTitle" placeholder="Örn: Elektronik Parçalar" required>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div><label>Nereden</label><input type="text" id="shipmentOrigin" required></div>
+                    <div><label>Nereye</label><input type="text" id="shipmentDestination" required></div>
                 </div>
+                <label>Not (Opsiyonel)</label>
+                <textarea id="shipmentDesc" rows="3"></textarea>
+                <button type="submit" class="btn-primary">GÖNDERİ TALEBİ OLUŞTUR</button>
             </form>
         </div>
     </div>
 
-    <script>
-        const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
-        if (!token) window.location.href = "index.html";
-
-        document.getElementById('logoutBtn').onclick = () => {
-            localStorage.clear(); sessionStorage.clear();
-            window.location.href = "index.html";
-        };
-
-        // 1. Kendi Kargolarını Listele
-        const fetchMyCargos = () => {
-            fetch('http://127.0.0.1:8000/api/tasks/', {
-                headers: { 'Authorization': 'Bearer ' + token }
-            })
-            .then(res => res.json())
-            .then(data => {
-                const list = document.getElementById('my-cargo-list');
-                const tasks = data.results || data;
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <h3>Profilimi Düzenle</h3>
+            <form id="profileEditForm">
+                <label>Kullanıcı Adı</label>
+                <input type="text" id="profUsername" disabled style="opacity: 0.5;">
+                <label>Ad Soyad</label>
+                <input type="text" id="profFullName" required>
+                <label>E-posta</label>
+                <input type="email" id="profEmail" required>
+                <label>Telefon Numarası</label>
+                <input type="text" id="profPhone" placeholder="05xx xxx xx xx">
                 
-                if (tasks.length === 0) {
-                    list.innerHTML = "<p style='color: #94a3b8;'>Henüz bir kargo talebiniz bulunmuyor.</p>";
-                    return;
-                }
+                <div style="background: rgba(249, 115, 22, 0.05); padding: 15px; border-radius: 15px; border: 1px solid rgba(249, 115, 22, 0.1); margin-top: 15px;">
+                    <h4 style="font-size: 11px; color: var(--primary); margin-bottom: 10px;">GÜVENLİK: ŞİFRE DEĞİŞTİR</h4>
+                    <label>Yeni Şifre</label>
+                    <input type="password" id="profileNewPassword" placeholder="Değiştirmek istemiyorsanız boş bırakın">
+                    <label>Yeni Şifre Tekrar</label>
+                    <input type="password" id="profileConfirmPassword">
+                </div>
+                
+                <button type="submit" class="btn-primary" style="margin-top: 20px;">BİLGİLERİ GÜNCELLE</button>
+            </form>
+            <button onclick="document.getElementById('profileModal').style.display='none'" style="background:none; border:none; color:var(--text-muted); width:100%; margin-top:10px; cursor:pointer;">Kapat</button>
+        </div>
+    </div>
 
-                list.innerHTML = tasks.map(t => `
-                    <div class="cargo-card">
-                        <div>
-                            <h3 style="margin-bottom: 8px;">[${t.task_code}] ${t.title}</h3>
-                            <p style="font-size: 13px; color: #94a3b8;">
-                                <i class="fa-solid fa-map-pin"></i> ${t.origin} <i class="fa-solid fa-arrow-right"></i> ${t.destination}
-                            </p>
-                        </div>
-                        <div style="text-align: right;">
-                            <span class="status-badge status-${t.status.toLowerCase().replace('_', '-')}">
-                                ${t.status.replace('_', ' ')}
-                            </span>
-                            <br><small style="color: #64748b; display:block; margin-top:10px;">${new Date(t.created_at).toLocaleDateString('tr-TR')}</small>
-                        </div>
-                    </div>
-                `).join('');
-            });
-        };
-
-        // 2. Yeni Kargo Talebi Oluştur
-        document.getElementById('cargoForm').onsubmit = (e) => {
-            e.preventDefault();
-            const payload = {
-                title: document.getElementById('title').value,
-                origin: document.getElementById('origin').value,
-                destination: document.getElementById('destination').value,
-                description: document.getElementById('desc').value,
-                status: "Onay_Bekliyor" // Müşteri talepleri onay bekleyerek başlar
-            };
-
-            fetch('http://127.0.0.1:8000/api/tasks/', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token 
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(res => {
-                if(res.ok) {
-                    alert("Kargo talebiniz başarıyla oluşturuldu ve yöneticiye iletildi.");
-                    document.getElementById('cargoModal').style.display = 'none';
-                    e.target.reset();
-                    fetchMyCargos();
-                } else {
-                    alert("Talebiniz oluşturulurken bir hata oluştu.");
-                }
-            });
-        };
-
-        // 3. Takip No ile Sorgula
-        window.sorgula = () => {
-            const code = document.getElementById('trackCode').value.toUpperCase();
-            if(!code) return;
-
-            // Listede ara veya API'den tekil çek (basitlik için listede filtreliyoruz)
-            fetchMyCargos();
-            alert(code + " kodlu kargo için güncel bilgiler tazelendi.");
-        };
-
-        // Sayfa açıldığında verileri çek
-        fetchMyCargos();
-    </script>
+    <script src="kullanici.js"></script>
 </body>
 </html>
