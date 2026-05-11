@@ -7,7 +7,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class ApiServisi {
-    private static final String BASE_URL = "http://127.0.0.1:8000/api/";
+    private static final String BASE_URL = "https://kargor-lojistik-takip-sistemi.onrender.com/api/";
     private static String accessToken = "";
 
     public static boolean girisYap(String username, String password) {
