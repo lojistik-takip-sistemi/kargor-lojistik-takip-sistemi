@@ -24,22 +24,31 @@ class TaskListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.role == 'Yonetici':
-            return Task.objects.filter(is_active=True).order_by('-created_at')
-        elif user.role == 'Kullanici':
-            # Müşteri sadece kendi kargolarını görür
-            return Task.objects.filter(is_active=True, customer=user).order_by('-created_at')
-        else:
-            # Personel sadece KENDİNE ATANMIŞ ve ONAYLANMIŞ görevleri görür
-            return Task.objects.filter(is_active=True, assigned_to=user).exclude(status='Onay_Bekliyor').order_by('-created_at')
+        
+        # Eğer giriş yapmamış birisi erişmeye çalışırsa boş döner
+        if user.is_anonymous:
+            return Task.objects.none()
+
+        # TEST İÇİN: Şimdilik tüm rollere her şeyi gösterelim. 
+        # Verilerin geldiğini gördükten sonra kısıtlamayı tekrar ekleriz.
+        return Task.objects.all().order_by('-created_at')
 
     def perform_create(self, serializer):
+        # Müşteri kargo oluştururken sistemin hata vermemesi için
         user = self.request.user
         if user.role == 'Kullanici':
-            # Müşteri oluşturuyorsa otomatik "Onay Bekliyor" yap ve sahibini kaydet
             serializer.save(customer=user, status='Onay_Bekliyor')
         else:
             serializer.save()
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        # Eğer kullanıcı 'Kullanici' rolündeyse kargoyu 'Onay Bekliyor' olarak kaydet
+        if user.role == 'Kullanici':
+            serializer.save(customer=user, status='Onay_Bekliyor')
+        else:
+            # Yönetici oluşturuyorsa doğrudan 'Yapilacak' olarak kaydet
+            serializer.save(status='Yapilacak')
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Task.objects.filter(is_active=True)

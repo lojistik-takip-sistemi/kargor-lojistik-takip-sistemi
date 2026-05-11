@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Görev ve Yönetim Platformu | Kontrol Paneli</title>
+    <title>Kargor | Kontrol Paneli</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -155,6 +155,7 @@
 
         .delivered { background: rgba(34, 197, 94, 0.15); color: var(--success); }
         .in-transit { background: rgba(234, 179, 8, 0.15); color: var(--warning); }
+        .pending { background: rgba(250, 204, 21, 0.1); color: var(--warning); border: 1px solid rgba(250, 204, 21, 0.2); }
 
         /* Modal Styles */
         .modal {
@@ -181,24 +182,23 @@
 <body>
 
     <div class="header">
-    <h2>Kontrol Paneli</h2>
-    
-    <div style="display: flex; gap: 20px; align-items: center;">
-        <button onclick="openProfileModal()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: white; padding: 8px 15px; border-radius: 10px; cursor: pointer; font-size: 13px;">👤 Profilim</button>
-        <button onclick="document.getElementById('userModal').style.display='flex'" class="add-btn" style="padding: 8px 15px; font-size: 13px; margin-left: 10px;">+ Personel Ekle</button>
-        <div id="notificationBell" style="position: relative; cursor: pointer; user-select: none;">
-            <span style="font-size: 24px;">🔔</span>
-            <span id="notifCount" style="position: absolute; top: -5px; right: -5px; background: #ff4e50; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; display: none; font-weight: bold; border: 2px solid #0f172a;">0</span>
-            
-            <div id="notifDropdown" style="display: none; position: absolute; top: 40px; right: 0; width: 300px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); z-index: 2000; padding: 15px;">
-                <h4 style="margin-bottom: 12px; font-size: 14px; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Bildirimler</h4>
-                <div id="notifList" style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
-                    </div>
+        <h2>Kargor Kontrol Paneli</h2>
+        
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <button onclick="openProfileModal()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: white; padding: 8px 15px; border-radius: 10px; cursor: pointer; font-size: 13px;">👤 Profilim</button>
+            <button onclick="document.getElementById('userModal').style.display='flex'" class="add-btn" style="padding: 8px 15px; font-size: 13px; margin-left: 10px;">+ Personel Ekle</button>
+            <div id="notificationBell" style="position: relative; cursor: pointer; user-select: none;">
+                <span style="font-size: 24px;">🔔</span>
+                <span id="notifCount" style="position: absolute; top: -5px; right: -5px; background: #ff4e50; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; display: none; font-weight: bold; border: 2px solid #0f172a;">0</span>
+                
+                <div id="notifDropdown" style="display: none; position: absolute; top: 40px; right: 0; width: 300px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); z-index: 2000; padding: 15px;">
+                    <h4 style="margin-bottom: 12px; font-size: 14px; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Bildirimler</h4>
+                    <div id="notifList" style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;"></div>
+                </div>
             </div>
+            <button id="logoutBtn" class="logout-btn">Güvenli Çıkış</button>
         </div>
-        <button id="logoutBtn" class="logout-btn">Güvenli Çıkış</button>
     </div>
-</div>
 
     <div class="stats">
         <div class="card"><h4>Toplam Proje</h4><h2 id="stat-total-projects">0</h2></div>
@@ -206,27 +206,35 @@
         <div class="card"><h4>Tamamlanan Görevler</h4><h2 id="stat-completed-tasks">0</h2></div>
     </div>
 
-    <div class="card" style="margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; min-height: 400px;">
-    <h3 style="align-self: flex-start; margin-bottom: 20px; font-size: 18px; color: #f8fafc;">Görev Durum Dağılımı</h3>
-    <div style="width: 100%; max-width: 320px; position: relative;">
-        <canvas id="taskChart"></canvas>
+    <div class="card" style="margin-bottom: 30px; border-left: 5px solid var(--warning);">
+        <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--warning);"><i class="fa-solid fa-clock"></i> Onay Bekleyen Kargo Talepleri</h3>
+        <div id="pending-task-list">
+            <p style="color: #94a3b8; font-size: 13px;">Onay bekleyen yeni talep bulunmuyor.</p>
+        </div>
     </div>
 
-    <div class="card" style="margin-top: 30px;">
-    <h3 style="margin-bottom: 20px; font-size: 18px;">🏆 En Çok Görev Tamamlayanlar</h3>
-    <div id="performance-list">
-        <p style="color: #94a3b8; font-size: 13px;">Veriler yükleniyor...</p>
-    </div>
-</div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+        <div class="card" style="display: flex; flex-direction: column; align-items: center; min-height: 400px;">
+            <h3 style="align-self: flex-start; margin-bottom: 20px; font-size: 18px; color: #f8fafc;">Görev Durum Dağılımı</h3>
+            <div style="width: 100%; max-width: 280px; position: relative;">
+                <canvas id="taskChart"></canvas>
+            </div>
+        </div>
 
-</div>
+        <div class="card">
+            <h3 style="margin-bottom: 20px; font-size: 18px;">🏆 En Çok Görev Tamamlayanlar</h3>
+            <div id="performance-list">
+                <p style="color: #94a3b8; font-size: 13px;">Veriler yükleniyor...</p>
+            </div>
+        </div>
+    </div>
 
     <input type="text" id="searchInput" class="search-bar" placeholder="Görev adı veya kodu ile ara...">
 
     <div class="card">
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <h3 style="margin: 0;">Son Görevler</h3>
+                <h3 style="margin: 0;">Sistemdeki Aktif Görevler</h3>
                 <button id="openLogModalBtn" style="background: transparent; color: #94a3b8; border: 1px solid #94a3b8; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; transition: 0.3s;">İşlem Geçmişi</button>
             </div>
             <button id="openModalBtn" class="add-btn">+ Yeni Görev Ekle</button>
@@ -234,150 +242,124 @@
         <div id="task-list"></div>
     </div>
 
-    <div id="taskModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px);">
+    <div id="taskModal" class="modal">
         <div style="background: #1e293b; padding: 35px; border-radius: 25px; width: 420px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
                 <h3 style="color: white; margin: 0;">Yeni Görev Ekle</h3>
-                <span id="closeModalBtn" style="color: #94a3b8; cursor: pointer; font-size: 24px; transition: 0.3s;">&times;</span>
+                <span id="closeModalBtn" style="color: #94a3b8; cursor: pointer; font-size: 24px;">&times;</span>
             </div>
-            
             <form id="createTaskForm">
                 <div style="margin-bottom: 15px;">
-                    <label style="color: #94a3b8; font-size: 13px; display: block; margin-bottom: 8px;">Görev Başlığı</label>
-                    <input type="text" id="taskTitle" required style="width: 100%; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none;">
+                    <label style="color: #94a3b8; font-size: 11px; display: block; margin-bottom: 5px;">Görev Başlığı</label>
+                    <input type="text" id="taskTitle" required class="search-bar" style="margin-bottom:0;">
                 </div>
-
                 <div style="margin-bottom: 15px;">
-                    <label style="color: #94a3b8; font-size: 13px; display: block; margin-bottom: 8px;">Bağlı Olduğu Proje</label>
-                    <select id="taskProject" required style="width: 100%; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none;">
+                    <label style="color: #94a3b8; font-size: 11px; display: block; margin-bottom: 5px;">Bağlı Olduğu Proje</label>
+                    <select id="taskProject" required class="search-bar" style="margin-bottom:0; background: #0f172a;"></select>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="color: #94a3b8; font-size: 11px; display: block; margin-bottom: 5px;">Öncelik</label>
+                    <select id="taskPriority" class="search-bar" style="margin-bottom:0; background: #0f172a;">
+                        <option value="Dusuk" style="color:black;">Düşük</option>
+                        <option value="Normal" style="color:black;" selected>Normal</option>
+                        <option value="Acil" style="color:black;">Acil</option>
                     </select>
                 </div>
-
                 <div style="margin-bottom: 25px;">
-                    <label style="color: #94a3b8; font-size: 13px; display: block; margin-bottom: 8px;">Öncelik</label>
-                    <select id="taskPriority" style="width: 100%; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none;">
-                        <option value="Dusuk" style="color: black;">Düşük</option>
-                        <option value="Normal" style="color: black;" selected>Normal</option>
-                        <option value="Acil" style="color: black;">Acil</option>
-                    </select>
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; color: var(--text-muted); font-size: 11px; margin-bottom: 5px;">Görevi Atanacak Personel</label>
-                    <select id="taskAssignee" style="width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; outline: none;" required>
+                    <label style="color: #94a3b8; font-size: 11px; display: block; margin-bottom: 5px;">Görevi Atanacak Personel</label>
+                    <select id="taskAssignee" class="search-bar" style="margin-bottom:0; background: #0f172a;" required>
                         <option value="">-- Personel Seçin --</option>
                     </select>
                 </div>
-
-                <button type="submit" style="width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">Görev Oluştur</button>
+                <button type="submit" class="add-btn" style="width: 100%;">Görev Oluştur</button>
             </form>
         </div>
     </div>
 
-    <div id="updateModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px);">
-        <div style="background: #1e293b; padding: 35px; border-radius: 25px; width: 400px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+    <div id="updateModal" class="modal">
+        <div style="background: #1e293b; padding: 35px; border-radius: 25px; width: 400px; border: 1px solid rgba(255,255,255,0.1);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                <h3 style="color: white; margin: 0;">Görevi Güncelle</h3>
-                <span id="closeUpdateModalBtn" style="color: #94a3b8; cursor: pointer; font-size: 24px; transition: 0.3s;">&times;</span>
+                <h3 style="color: white; margin: 0;">Görevi Güncelle / Onayla</h3>
+                <span id="closeUpdateModalBtn" style="color: #94a3b8; cursor: pointer; font-size: 24px;">&times;</span>
             </div>
-            
             <form id="updateTaskForm">
                 <input type="hidden" id="updateTaskId"> 
-                
-                <div style="margin-bottom: 25px;">
-                    <label style="color: #94a3b8; font-size: 13px; display: block; margin-bottom: 8px;">Görev Durumu</label>
-                    <select id="updateTaskStatus" style="width: 100%; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none;">
-                        <option value="Yapilacak" style="color: black;">Yapılacak</option>
-                        <option value="Devam_Ediyor" style="color: black;">Devam Ediyor</option>
-                        <option value="Tamamlandi" style="color: black;">Tamamlandı</option>
+                <div style="margin-bottom: 15px;">
+                    <label style="color: #94a3b8; font-size: 11px; display: block; margin-bottom: 8px;">DURUM</label>
+                    <select id="updateTaskStatus" class="search-bar" style="background: #0f172a;">
+                        <option value="Onay_Bekliyor" style="color:black;">Onay Bekliyor</option>
+                        <option value="Yapilacak" style="color:black;">Onaylandı (Yapılacak)</option>
+                        <option value="Devam_Ediyor" style="color:black;">Yolda / Devam Ediyor</option>
+                        <option value="Tamamlandi" style="color:black;">Teslim Edildi</option>
                     </select>
                 </div>
-
-                <button type="submit" style="width: 100%; padding: 16px; background: #2563eb; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">Değişiklikleri Kaydet</button>
+                <div style="margin-bottom: 25px;">
+                    <label style="color: #94a3b8; font-size: 11px; display: block; margin-bottom: 8px;">GÖREVLENDİRİLEN PERSONEL</label>
+                    <select id="updateTaskAssignee" class="search-bar" style="background: #0f172a;">
+                        <option value="">-- Personel Ata --</option>
+                    </select>
+                </div>
+                <button type="submit" class="add-btn" style="width: 100%; background: #2563eb;">Değişiklikleri Kaydet</button>
             </form>
         </div>
     </div>
 
-    <div id="logModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px);">
-        <div style="background: #1e293b; padding: 35px; border-radius: 25px; width: 500px; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+    <div id="logModal" class="modal">
+        <div style="background: #1e293b; padding: 35px; border-radius: 25px; width: 500px; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
                 <h3 style="color: white; margin: 0;">Sistem İşlem Geçmişi</h3>
-                <span id="closeLogModalBtn" style="color: #94a3b8; cursor: pointer; font-size: 24px; transition: 0.3s;">&times;</span>
+                <span id="closeLogModalBtn" style="color: #94a3b8; cursor: pointer; font-size: 24px;">&times;</span>
             </div>
-            
-            <div id="log-list" style="display: flex; flex-direction: column; gap: 10px;">
-                </div>
+            <div id="log-list"></div>
         </div>
     </div>
 
-    <div id="commentModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1100;">
-    <div style="background: #1e293b; padding: 30px; border-radius: 20px; width: 500px; max-height: 90vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);">
-        <h3 id="modalTaskTitle" style="color: white; margin-bottom: 10px;">Görev Başlığı</h3>
-        <p id="modalTaskDesc" style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">Açıklama buraya gelecek...</p>
-        
-        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
-        
-        <h4 style="margin-bottom: 15px;">Yorumlar</h4>
-        <div id="comment-list" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;"></div>
-        
-        <form id="addCommentForm">
-            <input type="hidden" id="commentTaskId">
-            <textarea id="commentContent" placeholder="Bir yorum yaz..." required style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; resize: none; margin-bottom: 10px;"></textarea>
-            <button type="submit" style="width: 100%; padding: 12px; background: #4ade80; color: #064e3b; border: none; border-radius: 10px; font-weight: bold; cursor: pointer;">Gönder</button>
-        </form>
-        <button onclick="document.getElementById('commentModal').style.display='none'" style="width: 100%; margin-top: 10px; background: transparent; color: #94a3b8; border: none; cursor: pointer;">Kapat</button>
+    <div id="commentModal" class="modal">
+        <div style="background: #1e293b; padding: 30px; border-radius: 20px; width: 500px; max-height: 90vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);">
+            <h3 id="modalTaskTitle" style="color: white; margin-bottom: 10px;">Görev Başlığı</h3>
+            <p id="modalTaskDesc" style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;"></p>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
+            <h4 style="margin-bottom: 15px;">Yorumlar</h4>
+            <div id="comment-list" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;"></div>
+            <form id="addCommentForm">
+                <input type="hidden" id="commentTaskId">
+                <textarea id="commentContent" placeholder="Bir yorum yaz..." required class="search-bar" style="resize: none;"></textarea>
+                <button type="submit" class="add-btn" style="width: 100%; background: #4ade80; color: #064e3b;">Yorumu Gönder</button>
+            </form>
+            <button onclick="document.getElementById('commentModal').style.display='none'" style="width: 100%; margin-top: 10px; background: transparent; color: #94a3b8; border: none; cursor: pointer;">Kapat</button>
+        </div>
     </div>
-</div>
     
     <div id="profileModal" class="modal">
-    <div class="card" style="width: 400px; position: relative;">
-        <span onclick="closeModal('profileModal')" style="position: absolute; right: 20px; top: 20px; cursor: pointer; color: var(--text-muted);">✕</span>
-        <h2 style="margin-bottom: 20px;">Profil Ayarları</h2>
-        <form id="profileForm">
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; color: var(--text-muted); font-size: 11px; margin-bottom: 5px;">Kullanıcı Adı</label>
+        <div class="card" style="width: 400px; position: relative;">
+            <span onclick="closeModal('profileModal')" style="position: absolute; right: 20px; top: 20px; cursor: pointer; color: var(--text-muted);">✕</span>
+            <h2 style="margin-bottom: 20px;">Profil Ayarları</h2>
+            <form id="profileForm">
                 <input type="text" id="profileUsername" class="search-bar" disabled style="opacity: 0.5;">
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; color: var(--text-muted); font-size: 11px; margin-bottom: 5px;">Ad Soyad</label>
-                <input type="text" id="profileFullName" class="search-bar" required>
-            </div>
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; color: var(--text-muted); font-size: 11px; margin-bottom: 5px;">E-posta</label>
-                <input type="email" id="profileEmail" class="search-bar" required>
-            </div>
-            <button type="submit" class="add-btn" style="width: 100%;">Değişiklikleri Kaydet</button>
-        </form>
+                <input type="text" id="profileFullName" class="search-bar" placeholder="Ad Soyad" required>
+                <input type="email" id="profileEmail" class="search-bar" placeholder="E-posta" required>
+                <button type="submit" class="add-btn" style="width: 100%;">Kaydet</button>
+            </form>
+        </div>
     </div>
-</div>
 
     <div id="userModal" class="modal">
-    <div class="card" style="width: 400px; position: relative;">
-        <span onclick="closeModal('userModal')" style="position: absolute; right: 20px; top: 20px; cursor: pointer; color: var(--text-muted);">✕</span>
-        <h2 style="margin-bottom: 20px;">Yeni Personel Ekle</h2>
-        <form id="userAddForm">
-            <div style="margin-bottom: 10px;">
+        <div class="card" style="width: 400px; position: relative;">
+            <span onclick="closeModal('userModal')" style="position: absolute; right: 20px; top: 20px; cursor: pointer; color: var(--text-muted);">✕</span>
+            <h2 style="margin-bottom: 20px;">Yeni Personel Ekle</h2>
+            <form id="userAddForm">
                 <input type="text" id="addUsername" placeholder="Kullanıcı Adı" class="search-bar" required>
-            </div>
-            <div style="margin-bottom: 10px;">
                 <input type="password" id="addPassword" placeholder="Şifre" class="search-bar" required>
-            </div>
-            <div style="margin-bottom: 10px;">
                 <input type="text" id="addFullName" placeholder="Ad Soyad" class="search-bar" required>
-            </div>
-            <div style="margin-bottom: 10px;">
                 <input type="email" id="addEmail" placeholder="E-posta" class="search-bar" required>
-            </div>
-            <div style="margin-bottom: 20px;">
-                <select id="addRole" class="search-bar" style="background: #1e293b; color: white;">
+                <select id="addRole" class="search-bar" style="background: #1e293b;">
                     <option value="Personel">Personel</option>
-                    <option value="Yonetici">Yonetici</option>
+                    <option value="Yonetici">Yönetici</option>
                 </select>
-            </div>
-            <button type="submit" class="add-btn" style="width: 100%;">Personeli Kaydet</button>
-        </form>
+                <button type="submit" class="add-btn" style="width: 100%;">Personeli Kaydet</button>
+            </form>
+        </div>
     </div>
-</div>
 
     <script src="dashboard.js"></script>
 </body>
