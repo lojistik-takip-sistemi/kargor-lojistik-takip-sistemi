@@ -90,8 +90,8 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # --- KULLANICI / KURYE / MÜŞTERİ YÖNETİMİ ---
 
-class UserManagementView(generics.ListAPIView):
-    """Sistemdeki tüm kullanıcıları (Personel, Yönetici, Kullanıcı) listeler"""
+class UserManagementView(generics.ListCreateAPIView):
+    """Sistemdeki tüm kullanıcıları (Personel, Yönetici, Kullanıcı) listeler ve yeni kullanıcı oluşturur"""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
