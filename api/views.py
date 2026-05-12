@@ -140,7 +140,8 @@ class DashboardSummaryView(APIView):
     def get(self, request):
         # Genel Sayılar
         total_projects = Project.objects.count()
-        total_tasks = Task.objects.count()
+        active_tasks = Task.objects.count()
+        active_cargo = Task.objects.filter(status__in=['Devam_Ediyor', 'Tamamlandi']).count()
         completed_tasks = Task.objects.filter(status='Tamamlandi').count()
         todo_tasks = Task.objects.filter(status='Yapilacak').count()
         ongoing_tasks = Task.objects.filter(status='Devam_Ediyor').count()
@@ -157,7 +158,8 @@ class DashboardSummaryView(APIView):
 
         return Response({
             "total_projects": total_projects,
-            "total_tasks": total_tasks,
+            "active_tasks": active_tasks,
+            "active_cargo": active_cargo,
             "completed_tasks": completed_tasks,
             "todo_tasks": todo_tasks,
             "ongoing_tasks": ongoing_tasks,
